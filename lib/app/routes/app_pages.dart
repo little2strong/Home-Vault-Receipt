@@ -1,11 +1,11 @@
 import 'package:get/get.dart';
 
-import '../../features/receipt/presentation/bindings/add_receipt_binding.dart';
-import '../../features/receipt/presentation/bindings/receipt_binding.dart';
-import '../../features/receipt/presentation/views/add_receipt_view.dart';
-import '../../features/receipt/presentation/views/receipt_view.dart';
-import '../../features/splash/presentation/bindings/splash_binding.dart';
-import '../../features/splash/presentation/views/splash_view.dart';
+import '../../features/add_receipt/binding/add_receipt_binding.dart';
+import '../../features/add_receipt/view/add_receipt_view.dart';
+import '../../features/home/binding/home_binding.dart';
+import '../../features/home/view/home_view.dart';
+import '../../features/splash/binding/splash_binding.dart';
+import '../../features/splash/view/splash_view.dart';
 import 'app_routes.dart';
 
 abstract final class AppPages {
@@ -18,9 +18,9 @@ abstract final class AppPages {
       binding: SplashBinding(),
     ),
     GetPage(
-      name: Routes.receipts,
-      page: () => const ReceiptView(),
-      binding: ReceiptBinding(),
+      name: Routes.home,
+      page: () => const HomeView(),
+      binding: HomeBinding(),
     ),
     GetPage(
       name: Routes.addReceipt,
