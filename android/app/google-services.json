@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "918178599820",
+    "project_id": "home-vault-receipt-b47a5",
+    "storage_bucket": "home-vault-receipt-b47a5.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:918178599820:android:cdb293dbb04ffb93da3ca9",
+        "android_client_info": {
+          "package_name": "com.homevault.home_vault_receipt"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAqE6fAOtSPEWGx_YZjDUpsM8gZJ6csb-4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
