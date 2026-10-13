@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../constants/app_sizes.dart';
+import '../theme/vault_palette.dart';
 
 /// Centered icon + title + message, used for empty and error states.
 class MessageView extends StatelessWidget {
@@ -21,7 +22,7 @@ class MessageView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final p = context.palette;
 
     return Center(
       child: Padding(
@@ -29,16 +30,18 @@ class MessageView extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 64, color: theme.colorScheme.primary),
+            Icon(icon, size: 56, color: p.primary),
             const SizedBox(height: AppSizes.md),
-            Text(title, style: theme.textTheme.titleLarge),
+            Text(
+              title,
+              textAlign: TextAlign.center,
+              style: context.textStyles.titleMedium,
+            ),
             const SizedBox(height: AppSizes.sm),
             Text(
               message,
               textAlign: TextAlign.center,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
+              style: context.textStyles.bodyMedium?.copyWith(color: p.muted),
             ),
             if (actionLabel != null && onAction != null) ...[
               const SizedBox(height: AppSizes.lg),
