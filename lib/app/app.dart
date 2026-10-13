@@ -2,12 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../core/constants/app_strings.dart';
+import '../core/services/key_value_store.dart';
 import '../core/theme/app_theme.dart';
 import 'bindings/initial_binding.dart';
 import 'routes/app_pages.dart';
 
 class App extends StatelessWidget {
-  const App({super.key});
+  const App({super.key, required this.store});
+
+  final KeyValueStore store;
 
   @override
   Widget build(BuildContext context) {
@@ -17,7 +20,7 @@ class App extends StatelessWidget {
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,
       themeMode: ThemeMode.system,
-      initialBinding: InitialBinding(),
+      initialBinding: InitialBinding(store: store),
       initialRoute: AppPages.initial,
       getPages: AppPages.pages,
       defaultTransition: Transition.cupertino,

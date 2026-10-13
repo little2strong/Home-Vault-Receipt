@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 
 import '../../../core/constants/app_sizes.dart';
 import '../../../core/constants/app_strings.dart';
+import '../../../core/theme/vault_palette.dart';
 import '../controller/splash_controller.dart';
 import '../widgets/splash_logo.dart';
 
@@ -11,10 +12,10 @@ class SplashView extends GetView<SplashController> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final p = context.palette;
 
     return Scaffold(
-      backgroundColor: theme.colorScheme.primary,
+      backgroundColor: p.hero,
       body: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -22,17 +23,16 @@ class SplashView extends GetView<SplashController> {
             const SplashLogo(),
             const SizedBox(height: AppSizes.lg),
             Text(
-              AppStrings.appName,
-              style: theme.textTheme.headlineSmall?.copyWith(
-                color: theme.colorScheme.onPrimary,
-                fontWeight: FontWeight.bold,
+              AppStrings.brand,
+              style: context.textStyles.headlineSmall?.copyWith(
+                color: p.onHero,
               ),
             ),
             const SizedBox(height: AppSizes.sm),
             Text(
               AppStrings.tagline,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onPrimary.withValues(alpha: 0.8),
+              style: context.textStyles.bodyMedium?.copyWith(
+                color: p.onHero.withValues(alpha: 0.8),
               ),
             ),
           ],
