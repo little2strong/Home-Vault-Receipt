@@ -76,7 +76,7 @@ class WebSignInView extends GetView<SignInController> {
                 Expanded(child: Divider(color: p.outline)),
               ],
             ),
-            EmailPasswordForm(controller: controller, allowCreate: false),
+            EmailPasswordForm(controller: controller),
             Obx(
               () => controller.error.value == null
                   ? const SizedBox(height: 12)

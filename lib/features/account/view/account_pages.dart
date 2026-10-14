@@ -26,6 +26,7 @@ import '../../../core/widgets/vault_ui.dart';
 import '../../add/controller/capture_flow.dart';
 import '../../products/controller/products_controller.dart';
 import '../../shell/controller/shell_controller.dart';
+import '../../start/controller/start_controllers.dart';
 
 // ----------------------------------------------------------- 33 Spending
 
@@ -853,21 +854,24 @@ class SettingsView extends StatelessWidget {
                   ),
                   onTap: () => Get.toNamed(Routes.pending),
                 ),
-              DetailRow(
-                'Sign out',
-                '',
-                onTap: () async {
-                  final ok = await Pickers.confirm(
-                    context,
-                    title: 'Sign out?',
-                    message:
-                        'Drafts not yet saved stay on this phone for when you sign back in.',
-                    action: 'Sign out',
-                  );
-                  if (!ok) return;
-                  await auth.signOut();
-                  await Get.offAllNamed(Routes.welcome);
-                },
+              InkWell(
+                onTap: () => confirmSignOut(context),
+                child: const Padding(
+                  padding: EdgeInsets.all(16),
+                  child: Row(
+                    children: [
+                      Icon(Icons.logout_rounded, size: 22),
+                      SizedBox(width: 12),
+                      Text(
+                        'Sign out',
+                        style: TextStyle(
+                          fontSize: 17,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
               InkWell(
                 onTap: () => Get.toNamed(Routes.deleteAccount),
@@ -937,8 +941,7 @@ class DeleteAccountController extends GetxController {
           await Get.find<ReceiptSaver>().discard(d);
         }
       }
-      await auth.signOut();
-      await Get.offAllNamed(kIsWeb ? Routes.webSignIn : Routes.welcome);
+      await signOutOfVault();
       Toast.show('Your account and data have been deleted.');
     } on AuthFailure catch (e) {
       error.value = e.message.isEmpty ? null : e.message;

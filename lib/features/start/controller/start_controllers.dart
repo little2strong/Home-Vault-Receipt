@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -23,10 +25,18 @@ class SplashController extends GetxController {
   }
 
   Future<void> _route() async {
-    await Future.wait([
-      store.ready.future.timeout(const Duration(seconds: 8), onTimeout: () {}),
-      Future<void>.delayed(const Duration(milliseconds: 700)),
-    ]);
+    // Hold the mark briefly, but never leave a signed-in person on the
+    // welcome screen just because the first auth event was slow.
+    const minimum = Duration(milliseconds: 900);
+    final started = DateTime.now();
+    try {
+      await store.ready.future.timeout(const Duration(seconds: 12));
+    } on TimeoutException {
+      // No auth answer. Continue as signed out.
+    }
+    final remaining = minimum - DateTime.now().difference(started);
+    if (remaining > Duration.zero) await Future<void>.delayed(remaining);
+    if (isClosed) return;
     if (store.user.value != null) {
       final next = Get.arguments;
       await afterSignIn(next: next is String ? next : null);
@@ -58,6 +68,25 @@ Future<void> afterSignIn({String? next}) async {
   }
 }
 
+/// Signs out and leaves the signed-in app, on the phone or the website.
+Future<void> signOutOfVault() async {
+  await Get.find<AuthRepository>().signOut();
+  await Get.offAllNamed(kIsWeb ? Routes.webSignIn : Routes.welcome);
+}
+
+Future<void> confirmSignOut(BuildContext context) async {
+  final ok = await Pickers.confirm(
+    context,
+    title: 'Sign out?',
+    message: kIsWeb
+        ? 'You can sign back in with the same account.'
+        : 'Drafts not yet saved stay on this phone for when you sign back in.',
+    action: 'Sign out',
+  );
+  if (!ok) return;
+  await signOutOfVault();
+}
+
 /// Page 03.
 class SignInController extends GetxController {
   SignInController(this.auth);
@@ -67,9 +96,6 @@ class SignInController extends GetxController {
   final password = TextEditingController();
   final busy = RxnString();
   final error = RxnString();
-
-  /// Off: sign in to an existing account. On: create a new one.
-  final creating = false.obs;
   final showPassword = false.obs;
 
   static const minPasswordLength = 8;
@@ -83,7 +109,7 @@ class SignInController extends GetxController {
     } on AuthFailure catch (e) {
       error.value = e.message.isEmpty ? null : e.message;
     } catch (e) {
-      error.value = 'Sign-in did not work. Try again.';
+      error.value = 'That did not work. Try again.';
     } finally {
       busy.value = null;
     }
@@ -99,12 +125,12 @@ class SignInController extends GetxController {
     await afterSignIn();
   });
 
-  /// Signs in, or creates the account when [creating] is on.
-  Future<void> submitEmail() => _run('email', () async {
+  /// Signs in, or creates the account when [create] is set.
+  Future<void> submitEmail({bool create = false}) => _run('email', () async {
     final address = _validEmail();
     final pass = password.text;
     if (pass.isEmpty) throw const AuthFailure('Enter your password.');
-    if (creating.value) {
+    if (create) {
       if (pass.length < minPasswordLength) {
         throw const AuthFailure(
           'Choose a password with at least $minPasswordLength characters.',
@@ -137,9 +163,18 @@ class SignInController extends GetxController {
     return address;
   }
 
-  void toggleCreating() {
-    creating.toggle();
+  void openSignUp() {
     error.value = null;
+    Get.toNamed(Routes.signUp);
+  }
+
+  void openSignIn() {
+    error.value = null;
+    if (Get.previousRoute == Routes.signIn) {
+      Get.back();
+      return;
+    }
+    Get.offNamed(Routes.signIn);
   }
 
   @override

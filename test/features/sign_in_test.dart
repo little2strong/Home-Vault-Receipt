@@ -7,7 +7,7 @@ import 'package:home_vault_receipt/core/theme/app_theme.dart';
 import 'package:home_vault_receipt/features/start/controller/start_controllers.dart';
 import 'package:home_vault_receipt/features/start/view/start_views.dart';
 
-Future<SignInController> pumpSignIn(WidgetTester t) async {
+Future<SignInController> pumpAuth(WidgetTester t, Widget page) async {
   Get.testMode = true;
   t.view.physicalSize = const Size(600, 1400) * 3;
   t.view.devicePixelRatio = 3;
@@ -15,9 +15,7 @@ Future<SignInController> pumpSignIn(WidgetTester t) async {
   final controller = Get.put(
     SignInController(AuthRepository(MockFirebaseAuth())),
   );
-  await t.pumpWidget(
-    GetMaterialApp(theme: AppTheme.light, home: const SignInView()),
-  );
+  await t.pumpWidget(GetMaterialApp(theme: AppTheme.light, home: page));
   await t.pump();
   return controller;
 }
@@ -53,7 +51,7 @@ void main() {
 
   group('03 Sign in form', () {
     testWidgets('shows email and password, not a sign-in link', (t) async {
-      await pumpSignIn(t);
+      await pumpAuth(t, const SignInView());
       expect(find.text('Email address'), findsOneWidget);
       expect(find.text('Password'), findsOneWidget);
       expect(find.text('Forgot password?'), findsOneWidget);
@@ -63,7 +61,7 @@ void main() {
     });
 
     testWidgets('asks for a valid email before signing in', (t) async {
-      await pumpSignIn(t);
+      await pumpAuth(t, const SignInView());
       await t.tap(find.text('Sign in'));
       await t.pump();
       expect(
@@ -73,7 +71,7 @@ void main() {
     });
 
     testWidgets('asks for the password', (t) async {
-      await pumpSignIn(t);
+      await pumpAuth(t, const SignInView());
       await t.enterText(field('Email address'), 'sam@example.com');
       await t.tap(find.text('Sign in'));
       await t.pump();
@@ -81,10 +79,7 @@ void main() {
     });
 
     testWidgets('create account needs a long enough password', (t) async {
-      final c = await pumpSignIn(t);
-      await t.tap(find.text('Create an account'));
-      await t.pump();
-      expect(c.creating.value, isTrue);
+      await pumpAuth(t, const SignUpView());
       expect(find.text('Create account'), findsOneWidget);
       expect(find.text('Forgot password?'), findsNothing);
 
@@ -99,7 +94,7 @@ void main() {
     });
 
     testWidgets('the eye button shows and hides the password', (t) async {
-      final c = await pumpSignIn(t);
+      final c = await pumpAuth(t, const SignInView());
       expect(c.showPassword.value, isFalse);
       await t.tap(find.byTooltip('Show password'));
       await t.pump();

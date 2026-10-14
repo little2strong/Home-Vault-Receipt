@@ -67,6 +67,11 @@ abstract final class AppPages {
       binding: SignInBinding(),
     ),
     GetPage(
+      name: Routes.signUp,
+      page: () => const SignUpView(),
+      binding: SignInBinding(),
+    ),
+    GetPage(
       name: Routes.notifications,
       page: () => const NotificationsView(),
       binding: NotificationsBinding(),

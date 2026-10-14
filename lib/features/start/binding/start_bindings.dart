@@ -9,7 +9,8 @@ class SplashBinding extends Bindings {
 
 class SignInBinding extends Bindings {
   @override
-  void dependencies() => Get.lazyPut(() => SignInController(Get.find()));
+  void dependencies() =>
+      Get.lazyPut(() => SignInController(Get.find()), fenix: true);
 }
 
 class NotificationsBinding extends Bindings {

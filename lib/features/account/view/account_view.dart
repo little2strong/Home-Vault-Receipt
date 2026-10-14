@@ -8,8 +8,10 @@ import '../../../core/data/vault_store.dart';
 import '../../../core/services/app_config.dart';
 import '../../../core/theme/vault_palette.dart';
 import '../../../core/widgets/app_page.dart';
+import '../../../core/widgets/buttons.dart';
 import '../../../core/widgets/feedback.dart';
 import '../../../core/widgets/vault_ui.dart';
+import '../../start/controller/start_controllers.dart';
 
 /// 32 Account: spending for 30 days / 1 year / lifetime, and the menu.
 class AccountView extends StatelessWidget {
@@ -135,6 +137,12 @@ class AccountView extends StatelessWidget {
                     onTap: () => Get.toNamed(route),
                   ),
               ],
+            ),
+            const SizedBox(height: 20),
+            VaultButton.secondary(
+              label: 'Sign out',
+              icon: Icons.logout_rounded,
+              onPressed: () => confirmSignOut(context),
             ),
             const SizedBox(height: 16),
             Text(

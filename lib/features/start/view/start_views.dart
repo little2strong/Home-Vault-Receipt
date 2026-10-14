@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
 import '../../../app/routes/app_routes.dart';
+import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_sizes.dart';
 import '../../../core/theme/vault_palette.dart';
 import '../../../core/widgets/app_page.dart';
@@ -16,45 +18,82 @@ class SplashView extends GetView<SplashController> {
 
   @override
   Widget build(BuildContext context) {
-    controller; // Starts routing.
-    final p = context.palette;
-    return Scaffold(
-      backgroundColor: p.hero,
-      body: SafeArea(
-        child: Column(
-          children: [
-            const Spacer(flex: 3),
-            const BrandMark(),
-            const SizedBox(height: 32),
-            Text(
-              'Home Vault',
-              style: context.textStyles.displaySmall?.copyWith(
-                color: Colors.white,
-                fontWeight: FontWeight.w800,
+    controller;
+    const bars = SystemUiOverlayStyle(
+      statusBarColor: AppColors.hero,
+      statusBarIconBrightness: Brightness.light,
+      statusBarBrightness: Brightness.dark,
+      systemNavigationBarColor: AppColors.hero,
+      systemNavigationBarDividerColor: AppColors.hero,
+      systemNavigationBarIconBrightness: Brightness.light,
+      systemNavigationBarContrastEnforced: false,
+      systemStatusBarContrastEnforced: false,
+    );
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: bars,
+      child: Scaffold(
+        backgroundColor: AppColors.hero,
+        body: SizedBox.expand(
+          child: ColoredBox(
+            color: AppColors.hero,
+            child: SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 32),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    const Spacer(flex: 3),
+                    Container(
+                      padding: const EdgeInsets.all(22),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(36),
+                      ),
+                      child: const BrandMark(size: 88),
+                    ),
+                    const SizedBox(height: 28),
+                    Text(
+                      'Home Vault',
+                      textAlign: TextAlign.center,
+                      style: context.textStyles.displaySmall?.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: -0.6,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      'Receipts and belongings,\nkept in one place',
+                      textAlign: TextAlign.center,
+                      style: context.textStyles.titleMedium?.copyWith(
+                        color: Colors.white.withValues(alpha: 0.78),
+                        fontWeight: FontWeight.w400,
+                        height: 1.45,
+                      ),
+                    ),
+                    const Spacer(flex: 3),
+                    Semantics(
+                      label: 'Checking sign-in',
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(99),
+                        child: SizedBox(
+                          width: 112,
+                          child: LinearProgressIndicator(
+                            minHeight: 3,
+                            backgroundColor: Colors.white.withValues(
+                              alpha: 0.18,
+                            ),
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 48),
+                  ],
+                ),
               ),
             ),
-            const SizedBox(height: 16),
-            Text(
-              'Your receipts and belongings,\nkept safe in one place',
-              textAlign: TextAlign.center,
-              style: context.textStyles.titleMedium?.copyWith(
-                color: Colors.white.withValues(alpha: 0.8),
-                fontWeight: FontWeight.w400,
-                height: 1.5,
-              ),
-            ),
-            const Spacer(flex: 3),
-            SizedBox.square(
-              dimension: 40,
-              child: CircularProgressIndicator(
-                strokeWidth: 3,
-                color: Colors.white.withValues(alpha: 0.6),
-                backgroundColor: Colors.white.withValues(alpha: 0.12),
-                semanticsLabel: 'Checking sign-in',
-              ),
-            ),
-            const SizedBox(height: 56),
-          ],
+          ),
         ),
       ),
     );
@@ -72,7 +111,11 @@ class WelcomeView extends StatelessWidget {
       showBack: false,
       actions: [
         VaultButton(
-          label: 'Get started',
+          label: 'Create account',
+          onPressed: () => Get.toNamed(Routes.signUp),
+        ),
+        VaultButton.secondary(
+          label: 'I already have an account',
           onPressed: () => Get.toNamed(Routes.signIn),
         ),
       ],
@@ -210,15 +253,146 @@ class SignInView extends GetView<SignInController> {
 
   @override
   Widget build(BuildContext context) {
-    final p = context.palette;
-    final t = context.textStyles;
     return AppPage(
-      title: 'Sign in or create an account',
-      subtitle:
-          'Use the same account on your phone and on the Home Vault website.',
-      titleInHeader: false,
       children: [
-        const SizedBox(height: 12),
+        const _AuthIntro(
+          title: 'Welcome back',
+          subtitle:
+              'Sign in with the account you use on this phone and the web.',
+        ),
+        EmailPasswordForm(controller: controller),
+        const _AuthError(),
+        const _OrDivider(),
+        const SocialSignInButtons(),
+        const SizedBox(height: 8),
+        _AuthSwitch(
+          prompt: 'New to Home Vault?',
+          action: 'Create an account',
+          onPressed: controller.openSignUp,
+        ),
+        const _LegalLine(),
+      ],
+    );
+  }
+}
+
+/// Create account. Separate from sign-in so each screen has one job.
+class SignUpView extends GetView<SignInController> {
+  const SignUpView({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return AppPage(
+      children: [
+        const _AuthIntro(
+          title: 'Create your account',
+          subtitle:
+              'One account keeps your receipts on this phone and the web.',
+        ),
+        EmailPasswordForm(controller: controller, create: true),
+        const _AuthError(),
+        const _OrDivider(),
+        const SocialSignInButtons(),
+        const SizedBox(height: 8),
+        _AuthSwitch(
+          prompt: 'Already have an account?',
+          action: 'Sign in',
+          onPressed: controller.openSignIn,
+        ),
+        const _LegalLine(),
+      ],
+    );
+  }
+}
+
+class _AuthIntro extends StatelessWidget {
+  const _AuthIntro({required this.title, required this.subtitle});
+
+  final String title;
+  final String subtitle;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.textStyles;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 8),
+        const BrandRow(),
+        const SizedBox(height: 28),
+        Semantics(
+          header: true,
+          child: Text(
+            title,
+            style: t.headlineLarge?.copyWith(
+              fontWeight: FontWeight.w800,
+              letterSpacing: -0.4,
+            ),
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          subtitle,
+          style: t.titleMedium?.copyWith(
+            color: context.palette.muted,
+            fontWeight: FontWeight.w400,
+            height: 1.4,
+          ),
+        ),
+        const SizedBox(height: 28),
+      ],
+    );
+  }
+}
+
+class _AuthError extends GetView<SignInController> {
+  const _AuthError();
+
+  @override
+  Widget build(BuildContext context) {
+    return Obx(() {
+      final message = controller.error.value;
+      if (message == null) return const SizedBox(height: 8);
+      return Padding(
+        padding: const EdgeInsets.only(top: 16),
+        child: Semantics(
+          liveRegion: true,
+          child: InfoNote(message, warning: true, icon: Icons.error_outline),
+        ),
+      );
+    });
+  }
+}
+
+class _OrDivider extends StatelessWidget {
+  const _OrDivider();
+
+  @override
+  Widget build(BuildContext context) {
+    final p = context.palette;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        children: [
+          Expanded(child: Divider(color: p.outline)),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Text('or', style: TextStyle(color: p.muted)),
+          ),
+          Expanded(child: Divider(color: p.outline)),
+        ],
+      ),
+    );
+  }
+}
+
+class SocialSignInButtons extends GetView<SignInController> {
+  const SocialSignInButtons({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
         Obx(
           () => VaultButton.dark(
             label: 'Continue with Apple',
@@ -227,57 +401,68 @@ class SignInView extends GetView<SignInController> {
             onPressed: controller.apple,
           ),
         ),
-        const SizedBox(height: 14),
+        const SizedBox(height: 12),
         Obx(
           () => _GoogleButton(
             loading: controller.busy.value == 'google',
             onPressed: controller.google,
           ),
         ),
-        const SizedBox(height: 20),
-        Row(
-          children: [
-            Expanded(child: Divider(color: p.outline)),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Text('or', style: TextStyle(color: p.muted)),
-            ),
-            Expanded(child: Divider(color: p.outline)),
-          ],
-        ),
-        EmailPasswordForm(controller: controller),
-        Obx(() {
-          final e = controller.error.value;
-          if (e == null) return const SizedBox(height: 12);
-          return Padding(
-            padding: const EdgeInsets.only(top: 16),
-            child: Semantics(
-              liveRegion: true,
-              child: InfoNote(e, warning: true, icon: Icons.error_outline),
-            ),
-          );
-        }),
-        const SizedBox(height: 48),
-        Wrap(
-          alignment: WrapAlignment.center,
-          crossAxisAlignment: WrapCrossAlignment.center,
-          children: [
-            Text(
-              'By continuing you agree to the',
-              style: t.bodyMedium?.copyWith(color: p.muted),
-            ),
-            LinkButton(
-              label: 'Terms',
-              onPressed: () => Get.toNamed(Routes.terms),
-            ),
-            Text('and', style: t.bodyMedium?.copyWith(color: p.muted)),
-            LinkButton(
-              label: 'Privacy policy',
-              onPressed: () => Get.toNamed(Routes.privacy),
-            ),
-          ],
-        ),
       ],
+    );
+  }
+}
+
+class _AuthSwitch extends StatelessWidget {
+  const _AuthSwitch({
+    required this.prompt,
+    required this.action,
+    required this.onPressed,
+  });
+
+  final String prompt;
+  final String action;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return Wrap(
+      alignment: WrapAlignment.center,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      children: [
+        Text(prompt, style: TextStyle(color: context.palette.muted)),
+        LinkButton(label: action, onPressed: onPressed),
+      ],
+    );
+  }
+}
+
+class _LegalLine extends StatelessWidget {
+  const _LegalLine();
+
+  @override
+  Widget build(BuildContext context) {
+    final muted = context.textStyles.bodyMedium?.copyWith(
+      color: context.palette.muted,
+    );
+    return Padding(
+      padding: const EdgeInsets.only(top: 12, bottom: 8),
+      child: Wrap(
+        alignment: WrapAlignment.center,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        children: [
+          Text('By continuing you agree to the ', style: muted),
+          LinkButton(
+            label: 'Terms',
+            onPressed: () => Get.toNamed(Routes.terms),
+          ),
+          Text(' and ', style: muted),
+          LinkButton(
+            label: 'Privacy policy',
+            onPressed: () => Get.toNamed(Routes.privacy),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -328,19 +513,18 @@ class EmailPasswordForm extends StatelessWidget {
   const EmailPasswordForm({
     super.key,
     required this.controller,
-    this.allowCreate = true,
+    this.create = false,
   });
 
   final SignInController controller;
 
-  /// The website only signs in; accounts start in the app.
-  final bool allowCreate;
+  /// True on the create-account screen. The website always signs in.
+  final bool create;
 
   @override
   Widget build(BuildContext context) {
     final p = context.palette;
     return Obx(() {
-      final creating = allowCreate && controller.creating.value;
       final shown = controller.showPassword.value;
       final busy = controller.busy.value;
       return AutofillGroup(
@@ -360,17 +544,17 @@ class EmailPasswordForm extends StatelessWidget {
             LabeledField(
               label: 'Password',
               controller: controller.password,
-              hint: creating
+              hint: create
                   ? 'At least ${SignInController.minPasswordLength} characters'
                   : null,
               obscureText: !shown,
               keyboardType: TextInputType.visiblePassword,
               textCapitalization: TextCapitalization.none,
               autofillHints: [
-                creating ? AutofillHints.newPassword : AutofillHints.password,
+                create ? AutofillHints.newPassword : AutofillHints.password,
               ],
               textInputAction: TextInputAction.done,
-              onSubmitted: (_) => controller.submitEmail(),
+              onSubmitted: (_) => controller.submitEmail(create: create),
               suffix: IconButton(
                 tooltip: shown ? 'Hide password' : 'Show password',
                 icon: Icon(
@@ -382,7 +566,7 @@ class EmailPasswordForm extends StatelessWidget {
                 onPressed: controller.showPassword.toggle,
               ),
             ),
-            if (!creating)
+            if (!create)
               Align(
                 alignment: Alignment.centerRight,
                 child: LinkButton(
@@ -391,31 +575,12 @@ class EmailPasswordForm extends StatelessWidget {
                 ),
               )
             else
-              const SizedBox(height: 14),
+              const SizedBox(height: 20),
             VaultButton(
-              label: creating ? 'Create account' : 'Sign in',
+              label: create ? 'Create account' : 'Sign in',
               loading: busy == 'email',
-              onPressed: controller.submitEmail,
+              onPressed: () => controller.submitEmail(create: create),
             ),
-            if (allowCreate) ...[
-              const SizedBox(height: 8),
-              Wrap(
-                alignment: WrapAlignment.center,
-                crossAxisAlignment: WrapCrossAlignment.center,
-                children: [
-                  Text(
-                    creating
-                        ? 'Already have an account?'
-                        : 'New to Home Vault?',
-                    style: TextStyle(color: p.muted),
-                  ),
-                  LinkButton(
-                    label: creating ? 'Sign in' : 'Create an account',
-                    onPressed: controller.toggleCreating,
-                  ),
-                ],
-              ),
-            ],
           ],
         ),
       );

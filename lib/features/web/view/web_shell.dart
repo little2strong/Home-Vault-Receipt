@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../app/routes/app_routes.dart';
+import '../../start/controller/start_controllers.dart';
 import '../../../core/constants/app_sizes.dart';
-import '../../../core/data/auth_repository.dart';
 import '../../../core/data/vault_store.dart';
 import '../../../core/theme/vault_palette.dart';
 import '../../../core/widgets/brand.dart';
@@ -76,8 +76,7 @@ class WebScaffold extends StatelessWidget {
                             tooltip: 'Account',
                             onSelected: (v) async {
                               if (v == 'out') {
-                                await Get.find<AuthRepository>().signOut();
-                                await Get.offAllNamed(Routes.webSignIn);
+                                await confirmSignOut(context);
                               } else if (v == 'delete') {
                                 await Get.toNamed(Routes.webDeleteAccount);
                               } else if (v == 'privacy') {
