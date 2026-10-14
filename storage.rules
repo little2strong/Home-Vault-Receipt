@@ -1,0 +1,52 @@
+rules_version = '2';
+
+// All files are private to their owner. Clients may only add files to their
+// own receipts, item photos and room videos; exports and thumbnails are
+// written by Cloud Functions, and every delete goes through a Function so
+// the matching Firestore record goes at the same time.
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    function isOwner(uid) {
+      return request.auth != null && request.auth.uid == uid;
+    }
+
+    // Read anything you own, including exports made by Functions.
+    match /users/{uid}/{allPaths=**} {
+      allow read: if isOwner(uid);
+    }
+
+    // One stored original per receipt; frozen once the receipt is saved.
+    match /users/{uid}/receipts/{receiptId}/{file} {
+      allow create, update: if isOwner(uid)
+        && file.matches('original-[0-9]+[.](jpg|pdf)')
+        && request.resource.size < 50 * 1024 * 1024
+        && request.resource.contentType.matches('image/jpeg|application/pdf')
+        && !firestore.exists(/databases/(default)/documents/users/$(uid)/receipts/$(receiptId));
+    }
+
+    // Item photos (compressed on the phone). Thumbnails are server-made.
+    match /users/{uid}/items/{itemId}/photos/{file} {
+      allow create: if isOwner(uid)
+        && resource == null
+        && file.matches('[A-Za-z0-9]+[.]jpg')
+        && request.resource.size < 15 * 1024 * 1024
+        && request.resource.contentType == 'image/jpeg';
+    }
+
+    match /users/{uid}/items/{itemId}/warranty-card.jpg {
+      allow create, update: if isOwner(uid)
+        && request.resource.size < 15 * 1024 * 1024
+        && request.resource.contentType == 'image/jpeg';
+    }
+
+    // One walkthrough per room, about 2 minutes at 720p.
+    match /users/{uid}/rooms/{roomId}/walkthrough.mp4 {
+      allow create, update: if isOwner(uid)
+        && request.resource.size < 300 * 1024 * 1024
+        && request.resource.contentType == 'video/mp4';
+    }
+
+    // exports/ has no write rule, so only Functions can write there.
+  }
+}

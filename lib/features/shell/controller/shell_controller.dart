@@ -1,19 +1,26 @@
 import 'package:get/get.dart';
 
-import '../../../app/routes/app_routes.dart';
-
-enum ShellTab { home, receipts, more }
+import '../../../core/services/notification_service.dart';
 
 class ShellController extends GetxController {
-  final current = ShellTab.home.obs;
+  final tab = 0.obs;
 
-  void select(ShellTab tab) => current.value = tab;
+  @override
+  void onInit() {
+    super.onInit();
+    final args = Get.arguments;
+    if (args is int) tab.value = args;
+  }
 
-  /// Pops back to the tabs from anywhere and shows [tab].
-  static void openTab(ShellTab tab) {
-    Get.until((route) => route.settings.name == Routes.shell);
-    if (Get.isRegistered<ShellController>()) {
-      Get.find<ShellController>().select(tab);
+  @override
+  void onReady() {
+    super.onReady();
+    // Launched by tapping a reminder.
+    if (Get.isRegistered<NotificationService>()) {
+      final n = Get.find<NotificationService>();
+      final route = n.pendingRoute;
+      n.pendingRoute = null;
+      if (route != null) Get.toNamed(route);
     }
   }
 }

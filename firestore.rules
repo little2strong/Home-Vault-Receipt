@@ -1,0 +1,234 @@
+rules_version = '2';
+
+// Every document lives under users/{uid} and is readable and writable only
+// by its owner. Fields that must be trustworthy — receipt numbers, totals,
+// upload times, reminder schedules, export links — are written only by
+// Cloud Functions (Admin SDK bypasses these rules).
+service cloud.firestore {
+  match /databases/{db}/documents {
+
+    function isOwner(uid) {
+      return request.auth != null && request.auth.uid == uid;
+    }
+
+    function data() {
+      return request.resource.data;
+    }
+
+    // Keys this write adds or changes.
+    function changed() {
+      return resource == null
+        ? data().keys()
+        : data().diff(resource.data).affectedKeys();
+    }
+
+    function touches(keys) {
+      return changed().hasAny(keys);
+    }
+
+    function optString(k, max) {
+      return !(k in data()) || data()[k] == null
+        || (data()[k] is string && data()[k].size() <= max);
+    }
+
+    function optInt(k) {
+      return !(k in data()) || data()[k] == null || data()[k] is int;
+    }
+
+    function optBool(k) {
+      return !(k in data()) || data()[k] is bool;
+    }
+
+    function optDate(k) {
+      return !(k in data()) || data()[k] == null
+        || (data()[k] is string && data()[k].matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$'));
+    }
+
+    function isDate(k) {
+      return k in data() && data()[k] is string
+        && data()[k].matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$');
+    }
+
+    function optIn(k, values) {
+      return !(k in data()) || data()[k] == null || data()[k] in values;
+    }
+
+    function currency(k) {
+      return optIn(k, ['GBP', 'EUR', 'USD']);
+    }
+
+    match /users/{uid} {
+      function validProfile() {
+        return optString('displayName', 100)
+          && optString('email', 200)
+          && optString('timezone', 64)
+          && optString('locale', 16)
+          && currency('mainCurrency')
+          && optInt('reminderMinutes')
+          && (!('reminderMinutes' in data()) || (data().reminderMinutes >= 0 && data().reminderMinutes < 1440))
+          && optBool('warrantyReminders')
+          && optBool('returnReminders')
+          && optBool('keepPhotoLocation')
+          && optBool('homeSetupDone')
+          && optBool('notificationsAsked');
+      }
+
+      allow read: if isOwner(uid);
+      allow create: if isOwner(uid) && validProfile()
+        && !data().keys().hasAny(['receiptCounter', 'status']);
+      allow update: if isOwner(uid) && validProfile()
+        && !touches(['receiptCounter', 'status', 'createdAt']);
+      allow delete: if false;
+
+      // Spending totals: Functions only.
+      match /stats/{doc} {
+        allow read: if isOwner(uid);
+        allow write: if false;
+      }
+
+      // Idempotency records for saves: Functions only.
+      match /saveKeys/{doc} {
+        allow read, write: if false;
+      }
+
+      // One document per receipt. Created by saveReceipt (which assigns the
+      // HV number); the owner may correct the confirmed details.
+      match /receipts/{receiptId} {
+        allow read: if isOwner(uid);
+        allow create, delete: if false;
+        allow update: if isOwner(uid)
+          && changed().hasOnly(['shop', 'purchaseDate', 'currency', 'totalMinor',
+                                'taxMinor', 'orderNumber', 'revision', 'updatedAt'])
+          && optString('shop', 120)
+          && optDate('purchaseDate')
+          && currency('currency')
+          && optInt('totalMinor')
+          && optInt('taxMinor')
+          && optString('orderNumber', 80);
+      }
+
+      match /items/{itemId} {
+        function validItem() {
+          return data().name is string && data().name.size() > 0 && data().name.size() <= 200
+            && optIn('type', ['physical', 'digital', 'service', 'consumable'])
+            && optIn('purpose', ['home', 'car', 'work', 'gift', 'other'])
+            && optIn('status', ['owned', 'returned', 'sold', 'broken', 'givenAway'])
+            && optString('category', 40)
+            && optString('carId', 64)
+            && optBool('inHome')
+            && optBool('highValue')
+            && optBool('estimated')
+            && optInt('quantity')
+            && optInt('unitPriceMinor')
+            && optInt('lineTotalMinor')
+            && optInt('yearBought')
+            && optString('serial', 100)
+            && optString('model', 100)
+            && optString('notes', 2000)
+            && optDate('purchaseDate')
+            && optDate('warrantyEnd')
+            && currency('currency')
+            && (!('allocations' in data()) || data().allocations is map)
+            && (!('roomIds' in data()) || data().roomIds is list);
+        }
+
+        // Fields that tie an item to a saved receipt or come from the server.
+        function serverOnly() {
+          return ['receiptId', 'receiptNumber', 'photoCount', 'coverThumbPath',
+                  'searchTokens', 'extracted', 'lineBox'];
+        }
+
+        allow read: if isOwner(uid);
+        // Belongings added without a receipt.
+        allow create: if isOwner(uid) && validItem()
+          && !data().keys().hasAny(serverOnly())
+          && data().estimated == true;
+        allow update: if isOwner(uid) && validItem()
+          && !touches(serverOnly().concat(['createdAt', 'shop', 'currency']));
+        allow delete: if false;
+
+        // Evidence record per photo; serverUploadedAt and the thumbnail are
+        // added by a Function once the file arrives.
+        match /photos/{photoId} {
+          allow read: if isOwner(uid);
+          allow create: if isOwner(uid)
+            && data().path == 'users/' + uid + '/items/' + itemId + '/photos/' + photoId + '.jpg'
+            && data().source in ['camera', 'gallery']
+            && data().sha256 is string && data().sha256.size() == 64
+            && data().gpsKept is bool
+            && optString('label', 60)
+            && !data().keys().hasAny(['serverUploadedAt', 'thumbPath', 'serverSha256',
+                                      'fingerprintMatches', 'sizeBytes']);
+          allow update: if isOwner(uid) && changed().hasOnly(['label']) && optString('label', 60);
+          allow delete: if false;
+        }
+      }
+
+      match /rooms/{roomId} {
+        allow read: if isOwner(uid);
+        allow create: if isOwner(uid)
+          && data().name is string && data().name.size() > 0 && data().name.size() <= 60
+          && optString('type', 30) && optInt('order')
+          && !data().keys().hasAny(['videoPath', 'videoUploadedAt', 'videoSeconds']);
+        allow update: if isOwner(uid)
+          && changed().hasOnly(['name', 'order', 'videoPath', 'videoSeconds'])
+          && data().name is string && data().name.size() > 0 && data().name.size() <= 60
+          && (!('videoPath' in changed()) || data().videoPath == 'users/' + uid + '/rooms/' + roomId + '/walkthrough.mp4')
+          && optInt('videoSeconds');
+        allow delete: if false;
+      }
+
+      match /cars/{carId} {
+        allow read, delete: if isOwner(uid);
+        allow create, update: if isOwner(uid)
+          && data().name is string && data().name.size() > 0 && data().name.size() <= 60
+          && optString('reg', 16);
+      }
+
+      // Keyed by item; reminders are scheduled by a Function.
+      match /warranties/{itemId} {
+        allow read, delete: if isOwner(uid);
+        allow create, update: if isOwner(uid)
+          && isDate('endDate')
+          && optInt('lengthMonths')
+          && optString('itemName', 200)
+          && optString('shop', 120)
+          && optDate('purchaseDate')
+          && optBool('remind3Months')
+          && optBool('remind2Weeks')
+          && (!('cardPhotoPath' in data()) || data().cardPhotoPath == null
+              || data().cardPhotoPath == 'users/' + uid + '/items/' + itemId + '/warranty-card.jpg')
+          && !touches(['reminders', 'nextReminderAt', 'sentKinds']);
+      }
+
+      // Return deadlines: only from confirmed wording or a typed date.
+      match /returns/{receiptId} {
+        allow read, delete: if isOwner(uid);
+        allow create, update: if isOwner(uid)
+          && isDate('deadline')
+          && optString('shop', 120)
+          && optString('label', 200)
+          && optString('sourceText', 500)
+          && !touches(['reminders', 'nextReminderAt', 'sentKinds']);
+      }
+
+      // Created by the app, filled by a Function.
+      match /exports/{exportId} {
+        allow read: if isOwner(uid);
+        allow create: if isOwner(uid)
+          && data().status == 'building'
+          && data().kind in ['inventory', 'products', 'archive']
+          && data().format in ['pdf', 'csv', 'both', 'zip']
+          && (!('filters' in data()) || data().filters is map)
+          && !data().keys().hasAny(['url', 'path', 'paths', 'sizeBytes', 'expiresAt',
+                                    'itemCount', 'roomCount', 'readyAt', 'error']);
+        allow update, delete: if false;
+      }
+
+      // FCM tokens for reminders.
+      match /devices/{token} {
+        allow read, write: if isOwner(uid);
+      }
+    }
+  }
+}

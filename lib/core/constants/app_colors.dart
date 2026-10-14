@@ -1,22 +1,24 @@
 import 'package:flutter/material.dart';
 
-/// Raw palette from the Home Vault design. Widgets read colours through
+/// Visual tokens from the handbook. Widgets read colours through
 /// `context.palette` (see `VaultPalette`) so light and dark stay in sync.
 abstract final class AppColors {
-  static const background = Color(0xFFF4F5F0);
+  static const background = Color(0xFFF5F6F2);
   static const surface = Color(0xFFFFFFFF);
-  static const ink = Color(0xFF173B35);
-  static const muted = Color(0xFF5F6B67);
-  static const primary = Color(0xFF1F6B52);
-  static const hero = Color(0xFF173A34);
-  static const tonal = Color(0xFFE4EDE6);
-  static const outline = Color(0xFFDDE3DF);
-  static const warningSurface = Color(0xFFFDEBD5);
-  static const warningInk = Color(0xFF8A4B12);
-  static const warningBorder = Color(0xFF9A6A3A);
-  static const dangerSurface = Color(0xFFFBE7E4);
-  static const dangerInk = Color(0xFFB3362B);
-  static const illustration = Color(0xFFDDE7DF);
+  static const ink = Color(0xFF183A34);
+  static const muted = Color(0xFF5D6C65);
+  static const primary = Color(0xFF206951);
+  static const hero = Color(0xFF183A34);
+  static const tonal = Color(0xFFE7EFE7);
+  static const outline = Color(0xFFDFE5DE);
+  static const warningSurface = Color(0xFFFFF1D9);
+  static const warningInk = Color(0xFF80501C);
+  static const warningBorder = Color(0xFFE9C48E);
+  static const dangerSurface = Color(0xFFFBE9E6);
+  static const dangerInk = Color(0xFFA43434);
+  static const illustration = Color(0xFFE7EFE7);
+  static const camera = Color(0xFF0F1E1B);
+  static const scrim = Color(0xFF7C8F89);
 
   static const darkBackground = Color(0xFF0F1513);
   static const darkSurface = Color(0xFF1A2320);

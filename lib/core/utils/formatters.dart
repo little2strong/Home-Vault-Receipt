@@ -18,6 +18,20 @@ abstract final class Formatters {
   /// `2 Oct`
   static String shortDate(DateTime d) => '${d.day} ${_short(d.month)}';
 
+  /// `12 Sep 2026`, the date style used across the design.
+  static String medium(DateTime d) => '${d.day} ${_short(d.month)} ${d.year}';
+
+  /// `12 Sep 2026` or `Not stated`.
+  static String mediumOrNotStated(DateTime? d) =>
+      d == null ? 'Not stated' : medium(d);
+
+  /// `0:38` / `1 min 12 s`
+  static String clock(int seconds) =>
+      '${seconds ~/ 60}:${(seconds % 60).toString().padLeft(2, '0')}';
+
+  static String duration(int seconds) =>
+      seconds < 60 ? '$seconds s' : '${seconds ~/ 60} min ${seconds % 60} s';
+
   /// `24 September`
   static String dayMonth(DateTime d) => '${d.day} ${months[d.month - 1]}';
 

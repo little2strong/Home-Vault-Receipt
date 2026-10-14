@@ -1,53 +1,51 @@
-import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 
-import '../../core/repositories/auth_repository.dart';
-import '../../core/repositories/ownership_repository.dart';
-import '../../core/repositories/receipt_repository.dart';
-import '../../core/repositories/settings_repository.dart';
-import '../../core/services/document_service.dart';
-import '../../core/services/export_service.dart';
-import '../../core/services/key_value_store.dart';
-import '../../core/services/receipt_save_service.dart';
-import '../../core/services/sample_data.dart';
-import '../../core/services/upload_service.dart';
+import '../../core/data/auth_repository.dart';
+import '../../core/data/file_store.dart';
+import '../../core/data/vault_repository.dart';
+import '../../core/data/vault_store.dart';
+import '../../core/services/capture_service.dart';
+import '../../core/services/connectivity_service.dart';
+import '../../core/services/draft_store.dart';
+import '../../core/services/notification_service.dart';
+import '../../core/services/receipt_saver.dart';
+import '../../core/services/text_recognition_service.dart';
 
-/// App-wide dependencies that must outlive any single route.
+/// App-wide services, alive for the whole session.
 class InitialBinding extends Bindings {
-  InitialBinding({required this.store, this.seedSampleData = kDebugMode});
+  InitialBinding({this.mobile = true});
 
-  final KeyValueStore store;
-
-  /// Debug builds start each new vault with synthetic receipts so every
-  /// screen has data; release builds start empty.
-  final bool seedSampleData;
+  /// The website registers only what read-only views and downloads need.
+  final bool mobile;
 
   @override
   void dependencies() {
-    final auth = Get.put(AuthRepository(store: store), permanent: true);
-    final receipts = Get.put(
-      ReceiptRepository(
-        store: store,
-        seed: seedSampleData ? SampleData.receipts : null,
-        userId: auth.currentUser.value?.id,
+    final auth = Get.put(AuthRepository(), permanent: true);
+    final files = Get.put<FileStore>(FirebaseFileStore(), permanent: true);
+    final store = Get.put(VaultStore(auth), permanent: true);
+    final repo = Get.put(
+      VaultRepository(
+        uid: () => store.uid ?? (throw const VaultFailure('Signed out')),
+        files: files,
       ),
       permanent: true,
     );
-    // Switch vaults only when the account changes. Profile edits reuse the
-    // same id and must not reload over an in-flight save.
-    ever(auth.currentUser, (user) {
-      if (user?.id == receipts.userId) return;
-      receipts.openVault(user?.id);
-    });
+    final connectivity = Get.put(ConnectivityService(), permanent: true);
+    if (!mobile) return;
 
-    final uploads = Get.put(UploadService(), permanent: true);
-    Get.put(SettingsRepository(store: store), permanent: true);
-    Get.put(OwnershipRepository(), permanent: true);
-    Get.put(DocumentService(), permanent: true);
-    Get.put(ExportService(), permanent: true);
-    Get.put(
-      ReceiptSaveService(receipts: receipts, uploads: uploads),
-      permanent: true,
-    );
+    final capture = Get.put(CaptureService(), permanent: true);
+    Get
+      ..put(TextRecognitionService(), permanent: true)
+      ..put(
+        ReceiptSaver(
+          store: store,
+          repo: repo,
+          drafts: DraftStore(),
+          capture: capture,
+          connectivity: connectivity,
+        ),
+        permanent: true,
+      )
+      ..put(NotificationService(store, repo), permanent: true);
   }
 }

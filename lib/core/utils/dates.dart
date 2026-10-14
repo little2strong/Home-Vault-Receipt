@@ -22,6 +22,22 @@ abstract final class Dates {
     return DateTime(day.year, day.month, day.day + days);
   }
 
+  /// Calendar dates are stored as `YYYY-MM-DD` strings so a purchase date
+  /// never shifts with the reader's timezone.
+  static String toIso(DateTime d) =>
+      '${d.year.toString().padLeft(4, '0')}-'
+      '${d.month.toString().padLeft(2, '0')}-'
+      '${d.day.toString().padLeft(2, '0')}';
+
+  static DateTime? parseIso(String? s) {
+    if (s == null || s.length < 10) return null;
+    final y = int.tryParse(s.substring(0, 4));
+    final m = int.tryParse(s.substring(5, 7));
+    final d = int.tryParse(s.substring(8, 10));
+    if (y == null || m == null || d == null) return null;
+    return DateTime(y, m, d);
+  }
+
   static DateTime addMonths(DateTime d, int months) {
     final target = DateTime(d.year, d.month + months);
     final lastDay = DateTime(target.year, target.month + 1, 0).day;

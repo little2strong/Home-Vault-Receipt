@@ -37,6 +37,36 @@ dependencies:
   get: ^4.7.3
   firebase_core: ^4.15.0
   shared_preferences: ^2.5.6
+  firebase_auth: ^6.7.0
+  cloud_firestore: ^6.10.0
+  firebase_storage: ^13.6.0
+  cloud_functions: ^6.5.0
+  firebase_messaging: ^16.7.0
+  firebase_app_check: ^0.4.8
+  firebase_crashlytics: ^5.4.0
+  firebase_remote_config: ^6.7.0
+  google_sign_in: ^7.2.0
+  sign_in_with_apple: ^8.2.0
+  google_mlkit_text_recognition: ^0.17.1
+  google_mlkit_document_scanner: ^0.6.1
+  camera: ^0.12.1
+  image_picker: ^1.2.4
+  video_player: ^2.14.1
+  image: ^4.12.0
+  file_picker: ^13.1.0
+  pdfx: ^2.11.0
+  crypto: ^3.0.7
+  flutter_local_notifications: ^22.3.2
+  add_2_calendar: ^3.1.1
+  url_launcher: ^6.3.3
+  share_plus: ^13.3.1
+  path_provider: ^2.1.6
+  connectivity_plus: ^7.3.2
+  intl: ^0.20.3
+  flutter_timezone: ^5.1.1
+  app_links: ^7.2.2
+  uuid: ^4.6.0
+  photo_view: ^0.15.0
 
 dev_dependencies:
   flutter_test:
@@ -48,6 +78,9 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^6.0.0
+  mocktail: ^1.0.5
+  fake_cloud_firestore: ^4.3.0
+  firebase_auth_mocks: ^0.15.2
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
