@@ -8,8 +8,7 @@
   "scripts": {
     "build": "tsc",
     "build:watch": "tsc --watch",
-    "test": "npm run build && mocha --timeout 20000 \"lib/test/**/*.test.js\"",
-    "test:rules": "firebase emulators:exec --only firestore,storage,auth --project demo-homevault \"npm run test\"",
+    "test": "npm run build && firebase emulators:exec --only firestore,storage,auth --project demo-homevault \"mocha --timeout 30000 lib/test/**/*.test.js\"",
     "serve": "npm run build && firebase emulators:start",
     "deploy": "firebase deploy --only functions"
   },

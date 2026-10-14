@@ -84,8 +84,8 @@ class VaultStore extends GetxService {
       )
       ..add(
         _db
+            // Sorted on the client so an item missing a field never drops out.
             .collection(Paths.items(uid))
-            .orderBy('createdAt', descending: true)
             .snapshots()
             .listen((s) {
               final list = [

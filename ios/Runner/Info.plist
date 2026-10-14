@@ -4,10 +4,30 @@
 <dict>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>Home Vault uses the camera to scan receipts and photograph the things you own. Photos stay private to your account.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Home Vault opens your photos only when you choose a receipt or item photo to add.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Home Vault does not record sound. This is only asked because room videos use the camera.</string>
+	<key>NSCalendarsWriteOnlyAccessUsageDescription</key>
+	<string>Home Vault adds a warranty end date to your calendar when you ask it to.</string>
+	<key>NSCalendarsUsageDescription</key>
+	<string>Home Vault adds a warranty end date to your calendar when you ask it to.</string>
+	<key>NSContactsUsageDescription</key>
+	<string>Home Vault does not read your contacts.</string>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>remote-notification</string>
+	</array>
+	<key>FlutterDeepLinkingEnabled</key>
+	<false/>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>Home Vault Receipt</string>
+	<string>Home Vault</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>

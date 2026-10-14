@@ -342,7 +342,7 @@ export const onExportRequested = onDocumentCreated(
     try {
       await snap.ref.update(await buildExport(event.params.uid, event.params.exportId, snap.data()));
     } catch (e) {
-      console.error("export failed", { exportId: event.params.exportId, error: (e as Error).name });
+      console.error("export failed", { exportId: event.params.exportId, error: (e as Error).message });
       await snap.ref.update({ status: "failed", error: "The list could not be built. Try again." });
     }
   },

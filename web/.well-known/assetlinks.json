@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.homevault.home_vault_receipt",
+      "sha256_cert_fingerprints": [
+        "A5:5F:39:22:1B:F6:05:23:54:44:BA:C1:15:EB:BD:8C:A4:7C:69:D0:9E:76:11:4B:08:A2:6B:B2:5B:DA:FD:00"
+      ]
+    }
+  }
+]

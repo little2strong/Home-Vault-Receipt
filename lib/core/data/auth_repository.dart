@@ -123,6 +123,12 @@ class AuthRepository {
   Future<void> reauthenticate() async {
     final u = user;
     if (u == null) throw const AuthFailure('You are signed out.');
+    // A sign-in in the last few minutes already counts as recent.
+    final last = u.metadata.lastSignInTime;
+    if (last != null &&
+        DateTime.now().difference(last) < const Duration(minutes: 4)) {
+      return;
+    }
     final ids = u.providerData.map((p) => p.providerId).toSet();
     await _guard(() async {
       if (ids.contains('apple.com')) {

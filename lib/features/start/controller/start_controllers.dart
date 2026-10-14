@@ -32,7 +32,8 @@ class SplashController extends GetxController {
     // A sign-in link may have opened the app; DeepLinks routes it.
     if (Get.currentRoute == Routes.finishSignIn) return;
     if (store.user.value != null) {
-      await afterSignIn(replace: true);
+      final next = Get.arguments;
+      await afterSignIn(next: next is String ? next : null);
     } else {
       await Get.offAllNamed(kIsWeb ? Routes.webSignIn : Routes.welcome);
     }
@@ -40,7 +41,7 @@ class SplashController extends GetxController {
 }
 
 /// After any successful sign-in: make sure the profile exists, then home.
-Future<void> afterSignIn({bool replace = true}) async {
+Future<void> afterSignIn({String? next}) async {
   final store = Get.find<VaultStore>();
   final user = store.user.value;
   if (user != null) {
@@ -55,7 +56,7 @@ Future<void> afterSignIn({bool replace = true}) async {
     }
   }
   if (kIsWeb) {
-    await Get.offAllNamed(Routes.webDashboard);
+    await Get.offAllNamed(next ?? Routes.webDashboard);
   } else {
     await Get.offAllNamed(Routes.shell);
   }

@@ -99,7 +99,8 @@ class WebAuthGuard extends GetMiddleware {
     if (!Get.isRegistered<VaultStore>()) return null;
     final store = Get.find<VaultStore>();
     if (!store.ready.isCompleted) {
-      return const RouteSettings(name: Routes.splash);
+      // Come back to this page once the sign-in state is known.
+      return RouteSettings(name: Routes.splash, arguments: route);
     }
     if (store.user.value == null) {
       return const RouteSettings(name: Routes.webSignIn);

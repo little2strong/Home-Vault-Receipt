@@ -1,11 +1,11 @@
 {
-    "name": "home_vault_receipt",
-    "short_name": "home_vault_receipt",
+    "name": "Home Vault",
+    "short_name": "Home Vault",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#F5F6F2",
+    "theme_color": "#183A34",
+    "description": "Your receipts and home inventory.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

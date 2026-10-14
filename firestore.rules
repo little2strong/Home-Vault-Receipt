@@ -17,9 +17,7 @@ service cloud.firestore {
 
     // Keys this write adds or changes.
     function changed() {
-      return resource == null
-        ? data().keys()
-        : data().diff(resource.data).affectedKeys();
+      return data().diff(resource == null ? {} : resource.data).affectedKeys();
     }
 
     function touches(keys) {

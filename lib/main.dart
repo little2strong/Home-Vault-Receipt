@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_web_plugins/url_strategy.dart';
 
 import 'app/app.dart';
 import 'core/services/firebase_bootstrap.dart';
@@ -13,6 +14,9 @@ import 'core/services/firebase_bootstrap.dart';
 Future<void> _onBackgroundMessage(RemoteMessage message) async {}
 
 Future<void> main() async {
+  // Real paths (/products, /finish-sign-in) so email links and bookmarks
+  // work on the website.
+  usePathUrlStrategy();
   WidgetsFlutterBinding.ensureInitialized();
   await FirebaseBootstrap.init();
 

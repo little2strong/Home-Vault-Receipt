@@ -1,0 +1,13 @@
+{
+  "applinks": {
+    "details": [
+      {
+        "appIDs": ["TEAMID.com.homevault.homeVaultReceipt"],
+        "components": [
+          { "/": "/finish-sign-in*" },
+          { "/": "/__/auth/links*" }
+        ]
+      }
+    ]
+  }
+}
