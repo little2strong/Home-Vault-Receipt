@@ -1,49 +1,15 @@
-import 'dart:async';
-
-import 'package:app_links/app_links.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import '../core/data/auth_repository.dart';
 import '../core/data/vault_store.dart';
 import '../core/theme/app_theme.dart';
 import 'bindings/initial_binding.dart';
 import 'routes/app_pages.dart';
 import 'routes/app_routes.dart';
 
-class App extends StatefulWidget {
-  const App({super.key, this.initialLink});
-
-  /// An email sign-in link that launched the app.
-  final String? initialLink;
-
-  @override
-  State<App> createState() => _AppState();
-}
-
-class _AppState extends State<App> {
-  StreamSubscription<Uri>? _links;
-
-  @override
-  void initState() {
-    super.initState();
-    if (!kIsWeb) {
-      _links = AppLinks().uriLinkStream.listen((uri) {
-        final link = uri.toString();
-        if (Get.isRegistered<AuthRepository>() &&
-            Get.find<AuthRepository>().isEmailLink(link)) {
-          Get.offAllNamed(Routes.finishSignIn, arguments: link);
-        }
-      }, onError: (_) {});
-    }
-  }
-
-  @override
-  void dispose() {
-    _links?.cancel();
-    super.dispose();
-  }
+class App extends StatelessWidget {
+  const App({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -54,18 +20,14 @@ class _AppState extends State<App> {
       darkTheme: AppTheme.dark,
       themeMode: ThemeMode.system,
       initialBinding: InitialBinding(mobile: !kIsWeb),
-      initialRoute: widget.initialLink != null
-          ? Routes.finishSignIn
-          : Routes.splash,
+      initialRoute: Routes.splash,
       getPages: [
         for (final page in kIsWeb ? AppPages.web : AppPages.app)
           kIsWeb &&
                   page.name != Routes.splash &&
                   page.name != Routes.webSignIn &&
-                  page.name != Routes.finishSignIn &&
                   page.name != Routes.privacy &&
-                  page.name != Routes.terms &&
-                  page.name != Routes.checkEmail
+                  page.name != Routes.terms
               ? page.copy(middlewares: [WebAuthGuard()])
               : page,
       ],
@@ -81,12 +43,6 @@ class _AppState extends State<App> {
           ),
           child: child!,
         );
-      },
-      onReady: () {
-        final link = widget.initialLink;
-        if (link != null) {
-          Get.offAllNamed(Routes.finishSignIn, arguments: link);
-        }
       },
     );
   }

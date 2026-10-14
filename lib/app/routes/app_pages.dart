@@ -30,16 +30,6 @@ import 'app_routes.dart';
 abstract final class AppPages {
   static final _common = <GetPage<dynamic>>[
     GetPage(
-      name: Routes.finishSignIn,
-      page: () => const FinishSignInView(),
-      binding: FinishSignInBinding(),
-    ),
-    GetPage(
-      name: Routes.checkEmail,
-      page: () => const CheckEmailView(),
-      binding: CheckEmailBinding(),
-    ),
-    GetPage(
       name: Routes.originalPattern,
       page: () => const OriginalViewerView(),
       binding: BindingsBuilder(

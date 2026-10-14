@@ -21,6 +21,7 @@ import '../../../core/widgets/private_image.dart';
 import '../../../core/widgets/vault_ui.dart';
 import '../../products/controller/products_controller.dart';
 import '../../start/controller/start_controllers.dart';
+import '../../start/view/start_views.dart';
 import 'web_shell.dart';
 
 // --------------------------------------------------------- W1 Sign in
@@ -75,21 +76,7 @@ class WebSignInView extends GetView<SignInController> {
                 Expanded(child: Divider(color: p.outline)),
               ],
             ),
-            LabeledField(
-              label: 'Email address',
-              controller: controller.email,
-              hint: 'you@example.com',
-              keyboardType: TextInputType.emailAddress,
-              textCapitalization: TextCapitalization.none,
-            ),
-            const SizedBox(height: 12),
-            Obx(
-              () => VaultButton.secondary(
-                label: 'Email me a sign-in link',
-                loading: controller.busy.value == 'email',
-                onPressed: controller.emailLink,
-              ),
-            ),
+            EmailPasswordForm(controller: controller, allowCreate: false),
             Obx(
               () => controller.error.value == null
                   ? const SizedBox(height: 12)

@@ -12,16 +12,6 @@ class SignInBinding extends Bindings {
   void dependencies() => Get.lazyPut(() => SignInController(Get.find()));
 }
 
-class CheckEmailBinding extends Bindings {
-  @override
-  void dependencies() => Get.lazyPut(() => CheckEmailController(Get.find()));
-}
-
-class FinishSignInBinding extends Bindings {
-  @override
-  void dependencies() => Get.lazyPut(() => FinishSignInController(Get.find()));
-}
-
 class NotificationsBinding extends Bindings {
   @override
   void dependencies() => Get.lazyPut(() => NotificationsController(Get.find()));

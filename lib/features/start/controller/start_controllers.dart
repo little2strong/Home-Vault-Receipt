@@ -1,9 +1,7 @@
-import 'dart:async';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../../../app/routes/app_routes.dart';
 import '../../../core/data/auth_repository.dart';
@@ -29,8 +27,6 @@ class SplashController extends GetxController {
       store.ready.future.timeout(const Duration(seconds: 8), onTimeout: () {}),
       Future<void>.delayed(const Duration(milliseconds: 700)),
     ]);
-    // A sign-in link may have opened the app; DeepLinks routes it.
-    if (Get.currentRoute == Routes.finishSignIn) return;
     if (store.user.value != null) {
       final next = Get.arguments;
       await afterSignIn(next: next is String ? next : null);
@@ -68,8 +64,15 @@ class SignInController extends GetxController {
 
   final AuthRepository auth;
   final email = TextEditingController();
+  final password = TextEditingController();
   final busy = RxnString();
   final error = RxnString();
+
+  /// Off: sign in to an existing account. On: create a new one.
+  final creating = false.obs;
+  final showPassword = false.obs;
+
+  static const minPasswordLength = 8;
 
   Future<void> _run(String key, Future<void> Function() action) async {
     if (busy.value != null) return;
@@ -96,120 +99,53 @@ class SignInController extends GetxController {
     await afterSignIn();
   });
 
-  Future<void> emailLink() => _run('email', () async {
+  /// Signs in, or creates the account when [creating] is on.
+  Future<void> submitEmail() => _run('email', () async {
+    final address = _validEmail();
+    final pass = password.text;
+    if (pass.isEmpty) throw const AuthFailure('Enter your password.');
+    if (creating.value) {
+      if (pass.length < minPasswordLength) {
+        throw const AuthFailure(
+          'Choose a password with at least $minPasswordLength characters.',
+        );
+      }
+      await auth.createAccount(address, pass);
+    } else {
+      await auth.signInWithEmail(address, pass);
+    }
+    TextInput.finishAutofillContext();
+    await afterSignIn();
+  });
+
+  Future<void> forgotPassword() => _run('reset', () async {
+    final address = _validEmail();
+    await auth.sendPasswordReset(address);
+    Toast.show(
+      'If $address has an account, a reset link is on its way. '
+      'Check your spam folder too.',
+    );
+  });
+
+  String _validEmail() {
     final address = email.text.trim();
     if (!RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]{2,}$').hasMatch(address)) {
       throw const AuthFailure(
         'Enter your email address, like you@example.com.',
       );
     }
-    await auth.sendEmailLink(address);
-    await Get.toNamed(Routes.checkEmail, arguments: address);
-  });
-
-  @override
-  void onClose() {
-    email.dispose();
-    super.onClose();
-  }
-}
-
-/// Page 04.
-class CheckEmailController extends GetxController {
-  CheckEmailController(this.auth);
-
-  final AuthRepository auth;
-  late final String email = (Get.arguments as String?) ?? '';
-  final cooldown = 0.obs;
-  Timer? _timer;
-
-  Future<void> openMail() async {
-    final uri = GetPlatform.isIOS
-        ? Uri.parse('message://')
-        : Uri.parse('mailto:');
-    if (!await launchUrl(uri)) {
-      Toast.show('Open your email app to find the link.');
-    }
+    return address;
   }
 
-  Future<void> resend() async {
-    if (cooldown.value > 0) return;
-    try {
-      await auth.sendEmailLink(email);
-      Toast.show('Sent again. Check your inbox and spam folder.');
-      cooldown.value = 60;
-      _timer?.cancel();
-      _timer = Timer.periodic(const Duration(seconds: 1), (t) {
-        cooldown.value--;
-        if (cooldown.value <= 0) t.cancel();
-      });
-    } on AuthFailure catch (e) {
-      Toast.show(e.message);
-    }
-  }
-
-  @override
-  void onClose() {
-    _timer?.cancel();
-    super.onClose();
-  }
-}
-
-/// Completes email-link sign-in on this device.
-class FinishSignInController extends GetxController {
-  FinishSignInController(this.auth);
-
-  final AuthRepository auth;
-  final email = TextEditingController();
-  final needsEmail = false.obs;
-  final busy = true.obs;
-  final error = RxnString();
-  late final String link = _link();
-
-  String _link() {
-    final arg = Get.arguments;
-    if (arg is String) return arg;
-    return Uri.base.toString();
-  }
-
-  @override
-  void onReady() {
-    super.onReady();
-    _start();
-  }
-
-  Future<void> _start() async {
-    if (!auth.isEmailLink(link)) {
-      busy.value = false;
-      error.value = 'This link is not a Home Vault sign-in link.';
-      return;
-    }
-    final pending = await auth.pendingEmail();
-    if (pending == null) {
-      busy.value = false;
-      needsEmail.value = true;
-      return;
-    }
-    await finish(pending);
-  }
-
-  Future<void> finish([String? address]) async {
-    busy.value = true;
+  void toggleCreating() {
+    creating.toggle();
     error.value = null;
-    try {
-      await auth.completeEmailLink(link, email: address ?? email.text.trim());
-      await afterSignIn();
-    } on AuthFailure catch (e) {
-      error.value = e.message;
-      needsEmail.value = true;
-    } finally {
-      busy.value = false;
-    }
   }
 
   @override
   void onClose() {
     email.dispose();
+    password.dispose();
     super.onClose();
   }
 }

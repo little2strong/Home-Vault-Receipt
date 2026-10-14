@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -246,24 +245,7 @@ class SignInView extends GetView<SignInController> {
             Expanded(child: Divider(color: p.outline)),
           ],
         ),
-        AutofillGroup(
-          child: LabeledField(
-            label: 'Email address',
-            controller: controller.email,
-            hint: 'you@example.com',
-            keyboardType: TextInputType.emailAddress,
-            textCapitalization: TextCapitalization.none,
-            autofillHints: const [AutofillHints.email],
-          ),
-        ),
-        const SizedBox(height: 14),
-        Obx(
-          () => VaultButton.secondary(
-            label: 'Email me a sign-in link',
-            loading: controller.busy.value == 'email',
-            onPressed: controller.emailLink,
-          ),
-        ),
+        EmailPasswordForm(controller: controller),
         Obx(() {
           final e = controller.error.value;
           if (e == null) return const SizedBox(height: 12);
@@ -341,122 +323,103 @@ class _GoogleButton extends StatelessWidget {
   }
 }
 
-/// 04 Check your email
-class CheckEmailView extends GetView<CheckEmailController> {
-  const CheckEmailView({super.key});
+/// Email and password fields, shared by sign-in (03) and the website (W1).
+class EmailPasswordForm extends StatelessWidget {
+  const EmailPasswordForm({
+    super.key,
+    required this.controller,
+    this.allowCreate = true,
+  });
+
+  final SignInController controller;
+
+  /// The website only signs in; accounts start in the app.
+  final bool allowCreate;
 
   @override
   Widget build(BuildContext context) {
     final p = context.palette;
-    final t = context.textStyles;
-    return AppPage(
-      actions: [
-        if (!kIsWeb)
-          VaultButton(label: 'Open email app', onPressed: controller.openMail),
-        Obx(
-          () => VaultButton.secondary(
-            label: controller.cooldown.value > 0
-                ? 'Send again in ${controller.cooldown.value}s'
-                : 'Send the link again',
-            onPressed: controller.cooldown.value > 0 ? null : controller.resend,
-          ),
-        ),
-        LinkButton(label: 'Use a different email', onPressed: Get.back),
-      ],
-      children: [
-        const SizedBox(height: 80),
-        const Center(child: IconTile(Icons.mail_outline_rounded, size: 120)),
-        const SizedBox(height: 32),
-        Text(
-          'Check your email',
-          textAlign: TextAlign.center,
-          style: t.headlineMedium,
-        ),
-        const SizedBox(height: 16),
-        Text.rich(
-          TextSpan(
-            text: 'We sent a sign-in link to ',
-            children: [
-              TextSpan(
-                text: controller.email,
-                style: TextStyle(fontWeight: FontWeight.w800, color: p.ink),
-              ),
-              TextSpan(
-                text: kIsWeb
-                    ? '. Open it in this browser to continue.'
-                    : '. Tap it on this phone to continue.',
-              ),
-            ],
-          ),
-          textAlign: TextAlign.center,
-          style: t.titleMedium?.copyWith(
-            color: p.muted,
-            fontWeight: FontWeight.w400,
-            height: 1.5,
-          ),
-        ),
-        const SizedBox(height: 16),
-        Text(
-          'The link works for 1 hour.',
-          textAlign: TextAlign.center,
-          style: t.bodyMedium?.copyWith(color: p.muted),
-        ),
-      ],
-    );
-  }
-}
-
-/// Finishing an email sign-in link.
-class FinishSignInView extends GetView<FinishSignInController> {
-  const FinishSignInView({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return AppPage(
-      showBack: false,
-      title: 'Signing you in',
-      children: [
-        Obx(() {
-          if (controller.busy.value) {
-            return const Padding(
-              padding: EdgeInsets.all(40),
-              child: Center(child: CircularProgressIndicator()),
-            );
-          }
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              if (controller.error.value != null)
-                InfoNote(controller.error.value!, warning: true),
-              if (controller.needsEmail.value) ...[
-                const SizedBox(height: 8),
-                Text(
-                  'For your security, enter the email address the link was '
-                  'sent to.',
-                  style: context.textStyles.bodyLarge,
-                ),
-                LabeledField(
-                  label: 'Email address',
-                  controller: controller.email,
-                  keyboardType: TextInputType.emailAddress,
-                  textCapitalization: TextCapitalization.none,
-                ),
-                const SizedBox(height: 16),
-                VaultButton(
-                  label: 'Continue',
-                  onPressed: () => controller.finish(),
-                ),
+    return Obx(() {
+      final creating = allowCreate && controller.creating.value;
+      final shown = controller.showPassword.value;
+      final busy = controller.busy.value;
+      return AutofillGroup(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            LabeledField(
+              label: 'Email address',
+              controller: controller.email,
+              hint: 'you@example.com',
+              keyboardType: TextInputType.emailAddress,
+              textCapitalization: TextCapitalization.none,
+              autofillHints: const [AutofillHints.email],
+              textInputAction: TextInputAction.next,
+            ),
+            const SizedBox(height: 14),
+            LabeledField(
+              label: 'Password',
+              controller: controller.password,
+              hint: creating
+                  ? 'At least ${SignInController.minPasswordLength} characters'
+                  : null,
+              obscureText: !shown,
+              keyboardType: TextInputType.visiblePassword,
+              textCapitalization: TextCapitalization.none,
+              autofillHints: [
+                creating ? AutofillHints.newPassword : AutofillHints.password,
               ],
-              const SizedBox(height: 16),
-              LinkButton(
-                label: 'Back to sign in',
-                onPressed: () => Get.offAllNamed(Routes.signIn),
+              textInputAction: TextInputAction.done,
+              onSubmitted: (_) => controller.submitEmail(),
+              suffix: IconButton(
+                tooltip: shown ? 'Hide password' : 'Show password',
+                icon: Icon(
+                  shown
+                      ? Icons.visibility_off_outlined
+                      : Icons.visibility_outlined,
+                  color: p.muted,
+                ),
+                onPressed: controller.showPassword.toggle,
+              ),
+            ),
+            if (!creating)
+              Align(
+                alignment: Alignment.centerRight,
+                child: LinkButton(
+                  label: 'Forgot password?',
+                  onPressed: busy == null ? controller.forgotPassword : null,
+                ),
+              )
+            else
+              const SizedBox(height: 14),
+            VaultButton(
+              label: creating ? 'Create account' : 'Sign in',
+              loading: busy == 'email',
+              onPressed: controller.submitEmail,
+            ),
+            if (allowCreate) ...[
+              const SizedBox(height: 8),
+              Wrap(
+                alignment: WrapAlignment.center,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: [
+                  Text(
+                    creating
+                        ? 'Already have an account?'
+                        : 'New to Home Vault?',
+                    style: TextStyle(color: p.muted),
+                  ),
+                  LinkButton(
+                    label: creating ? 'Sign in' : 'Create an account',
+                    onPressed: controller.toggleCreating,
+                  ),
+                ],
               ),
             ],
-          );
-        }),
-      ],
-    );
+          ],
+        ),
+      );
+    });
   }
 }
 

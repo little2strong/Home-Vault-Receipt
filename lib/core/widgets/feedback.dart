@@ -116,6 +116,7 @@ abstract final class Pickers {
     String action = 'Save',
     TextCapitalization caps = TextCapitalization.sentences,
     TextInputType? keyboard,
+    bool obscure = false,
   }) {
     final controller = TextEditingController(text: initial);
     return showDialog<String>(
@@ -127,6 +128,9 @@ abstract final class Pickers {
           autofocus: true,
           textCapitalization: caps,
           keyboardType: keyboard,
+          obscureText: obscure,
+          autocorrect: !obscure,
+          enableSuggestions: !obscure,
           decoration: InputDecoration(hintText: hint),
           onSubmitted: (v) => Navigator.of(context).pop(v),
         ),

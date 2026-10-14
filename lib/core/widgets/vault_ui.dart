@@ -727,6 +727,10 @@ class LabeledField extends StatelessWidget {
     this.validator,
     this.maxLines = 1,
     this.prefix,
+    this.obscureText = false,
+    this.suffix,
+    this.textInputAction,
+    this.onSubmitted,
   });
 
   final String label;
@@ -744,6 +748,12 @@ class LabeledField extends StatelessWidget {
   final FormFieldValidator<String>? validator;
   final int maxLines;
   final String? prefix;
+
+  /// Hides the text, for passwords.
+  final bool obscureText;
+  final Widget? suffix;
+  final TextInputAction? textInputAction;
+  final ValueChanged<String>? onSubmitted;
 
   @override
   Widget build(BuildContext context) {
@@ -765,6 +775,11 @@ class LabeledField extends StatelessWidget {
           maxLines: maxLines,
           textCapitalization: textCapitalization,
           inputFormatters: inputFormatters,
+          obscureText: obscureText,
+          autocorrect: !obscureText,
+          enableSuggestions: !obscureText,
+          textInputAction: textInputAction,
+          onFieldSubmitted: onSubmitted,
           autofillHints: autofillHints,
           style: TextStyle(
             fontSize: 18,
@@ -774,6 +789,7 @@ class LabeledField extends StatelessWidget {
           decoration: InputDecoration(
             hintText: hint,
             prefixText: prefix,
+            suffixIcon: suffix,
             enabledBorder: warn ? border : null,
             contentPadding: const EdgeInsets.symmetric(
               horizontal: 18,

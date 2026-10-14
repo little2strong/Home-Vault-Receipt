@@ -914,10 +914,23 @@ class DeleteAccountController extends GetxController {
       destructive: true,
     );
     if (!ok) return;
+    String? password;
+    if (auth.usesPassword) {
+      if (!context.mounted) return;
+      password = await Pickers.text(
+        context,
+        title: 'Enter your password',
+        action: 'Confirm',
+        caps: TextCapitalization.none,
+        keyboard: TextInputType.visiblePassword,
+        obscure: true,
+      );
+      if (password == null) return;
+    }
     busy.value = true;
     error.value = null;
     try {
-      await auth.reauthenticate();
+      await auth.reauthenticate(password: password);
       await repo.deleteAccount();
       if (Get.isRegistered<ReceiptSaver>()) {
         for (final d in [...Get.find<ReceiptSaver>().pending]) {

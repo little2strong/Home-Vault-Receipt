@@ -5,8 +5,6 @@ abstract final class Routes {
   static const splash = '/'; // 01
   static const welcome = '/welcome'; // 02
   static const signIn = '/sign-in'; // 03
-  static const checkEmail = '/check-email'; // 04
-  static const finishSignIn = '/finish-sign-in';
   static const notifications = '/notifications'; // 05
 
   // Tabs: Home (06), Products (19), Warranties (30), Account (32)

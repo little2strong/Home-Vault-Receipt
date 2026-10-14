@@ -24,22 +24,11 @@
               android:name="io.flutter.embedding.android.NormalTheme"
               android:resource="@style/NormalTheme"
               />
-            <!-- Deep links are handled by app_links, not Flutter's router. -->
+            <!-- The app doesn't open web links. -->
             <meta-data android:name="flutter_deeplinking_enabled" android:value="false" />
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
-            </intent-filter>
-            <!-- Email sign-in links open the app (verified App Link). -->
-            <intent-filter android:autoVerify="true">
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="https" />
-                <data android:host="home-vault-receipt-b47a5.web.app" />
-                <data android:host="home-vault-receipt-b47a5.firebaseapp.com" />
-                <data android:pathPrefix="/finish-sign-in" />
-                <data android:pathPrefix="/__/auth/links" />
             </intent-filter>
         </activity>
 
