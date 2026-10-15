@@ -6,6 +6,7 @@ abstract final class Routes {
   static const welcome = '/welcome'; // 02
   static const signIn = '/sign-in'; // 03
   static const signUp = '/create-account';
+  static const forgotPassword = '/forgot-password';
   static const notifications = '/notifications'; // 05
 
   // Tabs: Home (06), Products (19), Warranties (30), Account (32)

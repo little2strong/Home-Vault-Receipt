@@ -731,6 +731,8 @@ class LabeledField extends StatelessWidget {
     this.suffix,
     this.textInputAction,
     this.onSubmitted,
+    this.error,
+    this.prefixIcon,
   });
 
   final String label;
@@ -754,6 +756,10 @@ class LabeledField extends StatelessWidget {
   final Widget? suffix;
   final TextInputAction? textInputAction;
   final ValueChanged<String>? onSubmitted;
+
+  /// Red outline and message under the field, e.g. "Enter your email address."
+  final String? error;
+  final Widget? prefixIcon;
 
   @override
   Widget build(BuildContext context) {
@@ -789,7 +795,10 @@ class LabeledField extends StatelessWidget {
           decoration: InputDecoration(
             hintText: hint,
             prefixText: prefix,
+            prefixIcon: prefixIcon,
             suffixIcon: suffix,
+            errorText: error,
+            errorMaxLines: 2,
             enabledBorder: warn ? border : null,
             contentPadding: const EdgeInsets.symmetric(
               horizontal: 18,

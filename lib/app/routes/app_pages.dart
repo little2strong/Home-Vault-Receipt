@@ -42,6 +42,11 @@ abstract final class AppPages {
       page: () => const DeleteAccountView(),
       binding: _deleteBinding,
     ),
+    GetPage(
+      name: Routes.forgotPassword,
+      page: () => const ForgotPasswordView(),
+      binding: SignInBinding(),
+    ),
     GetPage(name: Routes.privacy, page: () => const LegalView(terms: false)),
     GetPage(name: Routes.terms, page: () => const LegalView(terms: true)),
   ];

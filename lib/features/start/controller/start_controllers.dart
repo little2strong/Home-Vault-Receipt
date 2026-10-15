@@ -47,13 +47,13 @@ class SplashController extends GetxController {
 }
 
 /// After any successful sign-in: make sure the profile exists, then home.
-Future<void> afterSignIn({String? next}) async {
+Future<void> afterSignIn({String? next, String? displayName}) async {
   final store = Get.find<VaultStore>();
   final user = store.user.value;
   if (user != null) {
     try {
       await Get.find<VaultRepository>().ensureProfile(
-        displayName: user.displayName,
+        displayName: displayName ?? user.displayName,
         email: user.email,
         timezone: kIsWeb ? null : await NotificationService.currentTimezone(),
       );
@@ -87,18 +87,33 @@ Future<void> confirmSignOut(BuildContext context) async {
   await signOutOfVault();
 }
 
-/// Page 03.
+/// Page 03, create account and forgot password.
 class SignInController extends GetxController {
   SignInController(this.auth);
 
   final AuthRepository auth;
+  final name = TextEditingController();
   final email = TextEditingController();
   final password = TextEditingController();
+  final confirmPassword = TextEditingController();
   final busy = RxnString();
   final error = RxnString();
   final showPassword = false.obs;
 
-  static const minPasswordLength = 8;
+  final nameError = RxnString();
+  final emailError = RxnString();
+  final passwordError = RxnString();
+  final confirmError = RxnString();
+
+  /// The address a reset link went to; null until one is sent.
+  final resetSentTo = RxnString();
+
+  /// Seconds before another reset link can be requested.
+  final resendIn = 0.obs;
+  Timer? _resendTimer;
+
+  static const resendCooldown = 60;
+  static final _emailPattern = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]{2,}$');
 
   Future<void> _run(String key, Future<void> Function() action) async {
     if (busy.value != null) return;
@@ -126,50 +141,114 @@ class SignInController extends GetxController {
   });
 
   /// Signs in, or creates the account when [create] is set.
-  Future<void> submitEmail({bool create = false}) => _run('email', () async {
-    final address = _validEmail();
-    final pass = password.text;
-    if (pass.isEmpty) throw const AuthFailure('Enter your password.');
-    if (create) {
-      if (pass.length < minPasswordLength) {
-        throw const AuthFailure(
-          'Choose a password with at least $minPasswordLength characters.',
+  Future<void> submitEmail({bool create = false}) async {
+    if (busy.value != null) return;
+    if (!_validate(create: create)) return;
+    FocusManager.instance.primaryFocus?.unfocus();
+    await _run('email', () async {
+      final address = email.text.trim();
+      if (create) {
+        final displayName = _cleanName();
+        await auth.createAccount(
+          address,
+          password.text,
+          displayName: displayName,
         );
+        TextInput.finishAutofillContext();
+        await afterSignIn(displayName: displayName);
+      } else {
+        await auth.signInWithEmail(address, password.text);
+        TextInput.finishAutofillContext();
+        await afterSignIn();
       }
-      await auth.createAccount(address, pass);
-    } else {
-      await auth.signInWithEmail(address, pass);
-    }
-    TextInput.finishAutofillContext();
-    await afterSignIn();
-  });
+    });
+  }
 
-  Future<void> forgotPassword() => _run('reset', () async {
-    final address = _validEmail();
-    await auth.sendPasswordReset(address);
-    Toast.show(
-      'If $address has an account, a reset link is on its way. '
-      'Check your spam folder too.',
-    );
-  });
-
-  String _validEmail() {
+  bool _validate({required bool create}) {
+    _clearMessages();
     final address = email.text.trim();
-    if (!RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]{2,}$').hasMatch(address)) {
-      throw const AuthFailure(
-        'Enter your email address, like you@example.com.',
-      );
+    final pass = password.text;
+    if (create && _cleanName().isEmpty) nameError.value = 'Enter your name.';
+    emailError.value = _emailProblem(address);
+    if (pass.isEmpty) {
+      passwordError.value = create
+          ? 'Choose a password.'
+          : 'Enter your password.';
     }
-    return address;
+    if (create && confirmPassword.text != pass) {
+      confirmError.value = 'Passwords do not match.';
+    }
+    return nameError.value == null &&
+        emailError.value == null &&
+        passwordError.value == null &&
+        confirmError.value == null;
+  }
+
+  String? _emailProblem(String address) {
+    if (address.isEmpty) return 'Enter your email address.';
+    if (!_emailPattern.hasMatch(address)) {
+      return 'That does not look like an email, e.g. you@example.com.';
+    }
+    return null;
+  }
+
+  String _cleanName() => name.text.trim().replaceAll(RegExp(r'\s+'), ' ');
+
+  /// Emails a reset link to the address in the email field.
+  Future<void> sendReset() async {
+    if (busy.value != null) return;
+    _clearMessages();
+    final address = email.text.trim();
+    emailError.value = _emailProblem(address);
+    if (emailError.value != null) return;
+    FocusManager.instance.primaryFocus?.unfocus();
+    await _run('reset', () async {
+      await auth.sendPasswordReset(address);
+      resetSentTo.value = address;
+      _startResendCooldown();
+    });
+  }
+
+  Future<void> resendReset() async {
+    final address = resetSentTo.value;
+    if (address == null || resendIn.value > 0) return;
+    await _run('reset', () async {
+      await auth.sendPasswordReset(address);
+      _startResendCooldown();
+      Toast.show('Sent again to $address.');
+    });
+  }
+
+  /// Back to the email field on the forgot password screen.
+  void useDifferentEmail() {
+    _clearMessages();
+    resetSentTo.value = null;
+  }
+
+  void _startResendCooldown() {
+    _resendTimer?.cancel();
+    resendIn.value = resendCooldown;
+    _resendTimer = Timer.periodic(const Duration(seconds: 1), (t) {
+      resendIn.value--;
+      if (resendIn.value <= 0) t.cancel();
+    });
+  }
+
+  void _clearMessages() {
+    error.value = null;
+    nameError.value = null;
+    emailError.value = null;
+    passwordError.value = null;
+    confirmError.value = null;
   }
 
   void openSignUp() {
-    error.value = null;
+    _clearMessages();
     Get.toNamed(Routes.signUp);
   }
 
   void openSignIn() {
-    error.value = null;
+    _clearMessages();
     if (Get.previousRoute == Routes.signIn) {
       Get.back();
       return;
@@ -177,10 +256,20 @@ class SignInController extends GetxController {
     Get.offNamed(Routes.signIn);
   }
 
+  Future<void> openForgotPassword() async {
+    _clearMessages();
+    resetSentTo.value = null;
+    await Get.toNamed(Routes.forgotPassword);
+    _clearMessages();
+  }
+
   @override
   void onClose() {
+    _resendTimer?.cancel();
+    name.dispose();
     email.dispose();
     password.dispose();
+    confirmPassword.dispose();
     super.onClose();
   }
 }

@@ -50,15 +50,6 @@ class WebSignInView extends GetView<SignInController> {
             ),
             const SizedBox(height: 20),
             Obx(
-              () => VaultButton.dark(
-                label: 'Continue with Apple',
-                icon: Icons.apple,
-                loading: controller.busy.value == 'apple',
-                onPressed: controller.apple,
-              ),
-            ),
-            const SizedBox(height: 12),
-            Obx(
               () => VaultButton.secondary(
                 label: 'Continue with Google',
                 loading: controller.busy.value == 'google',

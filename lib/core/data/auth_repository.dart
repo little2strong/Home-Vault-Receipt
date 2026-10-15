@@ -92,12 +92,22 @@ class AuthRepository {
     });
   }
 
-  Future<void> createAccount(String email, String password) async {
+  Future<void> createAccount(
+    String email,
+    String password, {
+    String? displayName,
+  }) async {
     await _guard(() async {
-      await _auth.createUserWithEmailAndPassword(
+      final credential = await _auth.createUserWithEmailAndPassword(
         email: email.trim(),
         password: password,
       );
+      if (displayName == null || displayName.isEmpty) return;
+      try {
+        await credential.user?.updateDisplayName(displayName);
+      } catch (_) {
+        // The account exists either way; the profile document keeps the name.
+      }
     });
   }
 
@@ -181,7 +191,7 @@ class AuthRepository {
     'user-not-found' => 'That email and password do not match.',
     'email-already-in-use' =>
       'There is already an account with this email. Sign in instead.',
-    'weak-password' => 'Choose a longer password, at least 8 characters.',
+    'weak-password' => 'Choose a longer password, at least 6 characters.',
     'network-request-failed' => 'Waiting for connection. Try again shortly.',
     'user-disabled' => 'This account has been switched off.',
     'too-many-requests' => 'Too many attempts. Wait a minute and try again.',

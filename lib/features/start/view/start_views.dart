@@ -44,31 +44,32 @@ class SplashView extends GetView<SplashController> {
                   children: [
                     const Spacer(flex: 3),
                     Container(
-                      padding: const EdgeInsets.all(22),
+                      padding: const EdgeInsets.all(14),
                       decoration: BoxDecoration(
                         color: Colors.white,
-                        borderRadius: BorderRadius.circular(36),
+                        borderRadius: BorderRadius.circular(28),
                       ),
-                      child: const BrandMark(size: 88),
+                      child: const BrandMark(size: 64),
                     ),
-                    const SizedBox(height: 28),
+                    const SizedBox(height: 20),
                     Text(
                       'Home Vault',
                       textAlign: TextAlign.center,
-                      style: context.textStyles.displaySmall?.copyWith(
+                      style: context.textStyles.headlineMedium?.copyWith(
                         color: Colors.white,
+                        fontSize: 28,
                         fontWeight: FontWeight.w800,
-                        letterSpacing: -0.6,
+                        letterSpacing: -0.4,
                       ),
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 8),
                     Text(
                       'Receipts and belongings,\nkept in one place',
                       textAlign: TextAlign.center,
-                      style: context.textStyles.titleMedium?.copyWith(
+                      style: context.textStyles.bodyLarge?.copyWith(
                         color: Colors.white.withValues(alpha: 0.78),
                         fontWeight: FontWeight.w400,
-                        height: 1.45,
+                        height: 1.4,
                       ),
                     ),
                     const Spacer(flex: 3),
@@ -120,37 +121,48 @@ class WelcomeView extends StatelessWidget {
         ),
       ],
       children: [
-        const SizedBox(height: AppSizes.lg),
+        const SizedBox(height: 8),
         const _ReceiptIllustration(),
-        const SizedBox(height: 40),
+        const SizedBox(height: 24),
         Semantics(
           header: true,
           child: Text(
             'Every receipt and everything you own, in one place',
-            style: t.headlineLarge?.copyWith(fontWeight: FontWeight.w800),
+            style: t.headlineSmall?.copyWith(
+              fontSize: 24,
+              height: 1.25,
+              fontWeight: FontWeight.w800,
+              letterSpacing: -0.3,
+            ),
           ),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 8),
         Text(
           'Snap a receipt, check the details, and Home Vault keeps it safe.',
-          style: t.titleMedium?.copyWith(
+          style: t.bodyLarge?.copyWith(
             color: context.palette.muted,
             fontWeight: FontWeight.w400,
+            height: 1.4,
           ),
         ),
-        const SizedBox(height: 28),
+        const SizedBox(height: 18),
         for (final (icon, text) in const [
           (Icons.receipt_long_outlined, 'Find any receipt in seconds'),
           (Icons.verified_user_outlined, 'Reminders before warranties end'),
           (Icons.meeting_room_outlined, 'A room-by-room list for insurance'),
         ])
           Padding(
-            padding: const EdgeInsets.only(bottom: 16),
+            padding: const EdgeInsets.only(bottom: 12),
             child: Row(
               children: [
-                IconTile(icon),
-                const SizedBox(width: 16),
-                Expanded(child: Text(text, style: t.titleMedium)),
+                IconTile(icon, size: 36),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    text,
+                    style: t.bodyLarge?.copyWith(fontWeight: FontWeight.w500),
+                  ),
+                ),
               ],
             ),
           ),
@@ -174,12 +186,12 @@ class _ReceiptIllustration extends StatelessWidget {
       ),
     );
     return ExcludeSemantics(
-      child: AspectRatio(
-        aspectRatio: 1.15,
+      child: SizedBox(
+        height: 188,
         child: Container(
           decoration: BoxDecoration(
             color: p.tonal,
-            borderRadius: BorderRadius.circular(32),
+            borderRadius: BorderRadius.circular(24),
           ),
           alignment: Alignment.center,
           child: Stack(
@@ -188,9 +200,9 @@ class _ReceiptIllustration extends StatelessWidget {
               Transform.rotate(
                 angle: -0.05,
                 child: Container(
-                  width: 230,
-                  height: 300,
-                  padding: const EdgeInsets.all(24),
+                  width: 140,
+                  height: 168,
+                  padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
                     color: p.surface,
                     borderRadius: BorderRadius.circular(14),
@@ -199,43 +211,46 @@ class _ReceiptIllustration extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      bar(130, p.hero, 14),
-                      const SizedBox(height: 10),
-                      bar(84, p.outline),
-                      const SizedBox(height: 22),
-                      Divider(color: p.outline),
-                      for (final w in const [104.0, 76.0, 96.0]) ...[
-                        const SizedBox(height: 10),
+                      bar(84, p.hero, 10),
+                      const SizedBox(height: 8),
+                      bar(52, p.outline, 8),
+                      const SizedBox(height: 14),
+                      Divider(color: p.outline, height: 1),
+                      for (final w in const [68.0, 48.0, 60.0]) ...[
+                        const SizedBox(height: 8),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [bar(w, p.outline), bar(36, p.outline)],
+                          children: [
+                            bar(w, p.outline, 8),
+                            bar(24, p.outline, 8),
+                          ],
                         ),
                       ],
                       const Spacer(),
-                      Divider(color: p.outline),
-                      const SizedBox(height: 10),
+                      Divider(color: p.outline, height: 1),
+                      const SizedBox(height: 8),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [bar(56, p.hero), bar(46, p.primary)],
+                        children: [bar(36, p.hero, 8), bar(28, p.primary, 8)],
                       ),
                     ],
                   ),
                 ),
               ),
               Positioned(
-                right: -20,
-                bottom: -6,
+                right: -12,
+                bottom: -4,
                 child: Container(
-                  width: 84,
-                  height: 84,
+                  width: 52,
+                  height: 52,
                   decoration: BoxDecoration(
                     color: p.primary,
-                    borderRadius: BorderRadius.circular(22),
+                    borderRadius: BorderRadius.circular(16),
                   ),
                   child: const Icon(
                     Icons.check_rounded,
                     color: Colors.white,
-                    size: 40,
+                    size: 26,
                   ),
                 ),
               ),
@@ -257,14 +272,13 @@ class SignInView extends GetView<SignInController> {
       children: [
         const _AuthIntro(
           title: 'Welcome back',
-          subtitle:
-              'Sign in with the account you use on this phone and the web.',
+          subtitle: 'Sign in to see your receipts, warranties and belongings.',
         ),
         EmailPasswordForm(controller: controller),
         const _AuthError(),
         const _OrDivider(),
         const SocialSignInButtons(),
-        const SizedBox(height: 8),
+        const SizedBox(height: 16),
         _AuthSwitch(
           prompt: 'New to Home Vault?',
           action: 'Create an account',
@@ -287,13 +301,14 @@ class SignUpView extends GetView<SignInController> {
         const _AuthIntro(
           title: 'Create your account',
           subtitle:
-              'One account keeps your receipts on this phone and the web.',
+              'It takes a minute. Your vault stays in sync on this phone and '
+              'the web.',
         ),
         EmailPasswordForm(controller: controller, create: true),
         const _AuthError(),
-        const _OrDivider(),
+        const _OrDivider(label: 'or sign up with'),
         const SocialSignInButtons(),
-        const SizedBox(height: 8),
+        const SizedBox(height: 16),
         _AuthSwitch(
           prompt: 'Already have an account?',
           action: 'Sign in',
@@ -305,11 +320,151 @@ class SignUpView extends GetView<SignInController> {
   }
 }
 
+/// Forgot password: Firebase emails a link to its page for a new password.
+class ForgotPasswordView extends GetView<SignInController> {
+  const ForgotPasswordView({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return AppPage(
+      children: [
+        Obx(() {
+          final sentTo = controller.resetSentTo.value;
+          return AnimatedSwitcher(
+            duration: const Duration(milliseconds: 250),
+            child: sentTo == null
+                ? const _ResetRequest(key: ValueKey('request'))
+                : _ResetSent(sentTo, key: const ValueKey('sent')),
+          );
+        }),
+      ],
+    );
+  }
+}
+
+class _ResetRequest extends GetView<SignInController> {
+  const _ResetRequest({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const _AuthIntro(
+          icon: Icons.lock_reset_rounded,
+          title: 'Forgot your password?',
+          subtitle:
+              "Enter the email you use for Home Vault and we'll send you a "
+              'link to choose a new one.',
+        ),
+        Obx(
+          () => LabeledField(
+            label: 'Email address',
+            controller: controller.email,
+            hint: 'you@example.com',
+            error: controller.emailError.value,
+            prefixIcon: const Icon(Icons.mail_outline_rounded),
+            keyboardType: TextInputType.emailAddress,
+            textCapitalization: TextCapitalization.none,
+            autofillHints: const [AutofillHints.email],
+            textInputAction: TextInputAction.send,
+            onChanged: (_) => controller.emailError.value = null,
+            onSubmitted: (_) => controller.sendReset(),
+          ),
+        ),
+        const SizedBox(height: 24),
+        Obx(
+          () => VaultButton(
+            label: 'Send reset link',
+            icon: Icons.send_rounded,
+            loading: controller.busy.value == 'reset',
+            onPressed: controller.sendReset,
+          ),
+        ),
+        const _AuthError(),
+        const SizedBox(height: 8),
+        Center(
+          child: LinkButton(label: 'Back to sign in', onPressed: Get.back),
+        ),
+      ],
+    );
+  }
+}
+
+class _ResetSent extends GetView<SignInController> {
+  const _ResetSent(this.email, {super.key});
+
+  final String email;
+
+  @override
+  Widget build(BuildContext context) {
+    final p = context.palette;
+    final body = context.textStyles.bodyLarge?.copyWith(
+      color: p.muted,
+      height: 1.4,
+    );
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const _AuthIntro(
+          icon: Icons.mark_email_read_outlined,
+          title: 'Check your email',
+        ),
+        Semantics(
+          liveRegion: true,
+          child: Text.rich(
+            TextSpan(
+              children: [
+                const TextSpan(text: "If there's a Home Vault account for "),
+                TextSpan(
+                  text: email,
+                  style: TextStyle(color: p.ink, fontWeight: FontWeight.w700),
+                ),
+                const TextSpan(
+                  text: ", we've sent a link to choose a new password.",
+                ),
+              ],
+            ),
+            style: body,
+          ),
+        ),
+        const SizedBox(height: 20),
+        const InfoNote(
+          "It can take a few minutes. If you can't see it, check your spam "
+          'or junk folder.',
+          icon: Icons.schedule_rounded,
+        ),
+        const SizedBox(height: 24),
+        VaultButton(label: 'Back to sign in', onPressed: Get.back),
+        const SizedBox(height: 12),
+        Obx(() {
+          final wait = controller.resendIn.value;
+          return VaultButton.secondary(
+            label: wait > 0 ? 'Resend link in ${wait}s' : 'Resend link',
+            loading: controller.busy.value == 'reset',
+            onPressed: wait > 0 ? null : controller.resendReset,
+          );
+        }),
+        const _AuthError(),
+        const SizedBox(height: 8),
+        Center(
+          child: LinkButton(
+            label: 'Use a different email',
+            onPressed: controller.useDifferentEmail,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Logo (or an [icon] tile), a large title and a muted line under it.
 class _AuthIntro extends StatelessWidget {
-  const _AuthIntro({required this.title, required this.subtitle});
+  const _AuthIntro({required this.title, this.subtitle, this.icon});
 
   final String title;
-  final String subtitle;
+  final String? subtitle;
+  final IconData? icon;
 
   @override
   Widget build(BuildContext context) {
@@ -317,29 +472,32 @@ class _AuthIntro extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SizedBox(height: 8),
-        const BrandRow(),
-        const SizedBox(height: 28),
+        if (icon == null) const BrandRow() else IconTile(icon!, size: 56),
+        const SizedBox(height: 20),
         Semantics(
           header: true,
           child: Text(
             title,
-            style: t.headlineLarge?.copyWith(
+            style: t.headlineSmall?.copyWith(
+              fontSize: 26,
+              height: 1.2,
               fontWeight: FontWeight.w800,
-              letterSpacing: -0.4,
+              letterSpacing: -0.3,
             ),
           ),
         ),
-        const SizedBox(height: 8),
-        Text(
-          subtitle,
-          style: t.titleMedium?.copyWith(
-            color: context.palette.muted,
-            fontWeight: FontWeight.w400,
-            height: 1.4,
+        if (subtitle != null) ...[
+          const SizedBox(height: 6),
+          Text(
+            subtitle!,
+            style: t.bodyLarge?.copyWith(
+              color: context.palette.muted,
+              fontWeight: FontWeight.w400,
+              height: 1.4,
+            ),
           ),
-        ),
-        const SizedBox(height: 28),
+        ],
+        SizedBox(height: subtitle == null ? 8 : 12),
       ],
     );
   }
@@ -365,19 +523,21 @@ class _AuthError extends GetView<SignInController> {
 }
 
 class _OrDivider extends StatelessWidget {
-  const _OrDivider();
+  const _OrDivider({this.label = 'or'});
+
+  final String label;
 
   @override
   Widget build(BuildContext context) {
     final p = context.palette;
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
+      padding: const EdgeInsets.symmetric(vertical: 16),
       child: Row(
         children: [
           Expanded(child: Divider(color: p.outline)),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Text('or', style: TextStyle(color: p.muted)),
+            child: Text(label, style: TextStyle(color: p.muted)),
           ),
           Expanded(child: Divider(color: p.outline)),
         ],
@@ -391,24 +551,11 @@ class SocialSignInButtons extends GetView<SignInController> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Obx(
-          () => VaultButton.dark(
-            label: 'Continue with Apple',
-            icon: Icons.apple,
-            loading: controller.busy.value == 'apple',
-            onPressed: controller.apple,
-          ),
-        ),
-        const SizedBox(height: 12),
-        Obx(
-          () => _GoogleButton(
-            loading: controller.busy.value == 'google',
-            onPressed: controller.google,
-          ),
-        ),
-      ],
+    return Obx(
+      () => _GoogleButton(
+        loading: controller.busy.value == 'google',
+        onPressed: controller.google,
+      ),
     );
   }
 }
@@ -430,7 +577,12 @@ class _AuthSwitch extends StatelessWidget {
       alignment: WrapAlignment.center,
       crossAxisAlignment: WrapCrossAlignment.center,
       children: [
-        Text(prompt, style: TextStyle(color: context.palette.muted)),
+        Text(
+          prompt,
+          style: context.textStyles.bodyMedium?.copyWith(
+            color: context.palette.muted,
+          ),
+        ),
         LinkButton(label: action, onPressed: onPressed),
       ],
     );
@@ -478,7 +630,7 @@ class _GoogleButton extends StatelessWidget {
     final p = context.palette;
     return SizedBox(
       width: double.infinity,
-      height: AppSizes.buttonHeight + 4,
+      height: AppSizes.buttonHeight,
       child: OutlinedButton(
         onPressed: loading ? null : onPressed,
         style: OutlinedButton.styleFrom(
@@ -523,69 +675,116 @@ class EmailPasswordForm extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final p = context.palette;
+    final c = controller;
+    void submit() => c.submitEmail(create: create);
     return Obx(() {
-      final shown = controller.showPassword.value;
-      final busy = controller.busy.value;
+      final shown = c.showPassword.value;
+      final busy = c.busy.value;
+      final toggle = _VisibilityToggle(
+        shown: shown,
+        onPressed: c.showPassword.toggle,
+      );
       return AutofillGroup(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            if (create)
+              LabeledField(
+                label: 'Full name',
+                controller: c.name,
+                hint: 'e.g. Sam Taylor',
+                error: c.nameError.value,
+                prefixIcon: const Icon(Icons.person_outline_rounded),
+                keyboardType: TextInputType.name,
+                textCapitalization: TextCapitalization.words,
+                autofillHints: const [AutofillHints.name],
+                textInputAction: TextInputAction.next,
+                onChanged: (_) => c.nameError.value = null,
+              ),
             LabeledField(
               label: 'Email address',
-              controller: controller.email,
+              controller: c.email,
               hint: 'you@example.com',
+              error: c.emailError.value,
+              prefixIcon: const Icon(Icons.mail_outline_rounded),
               keyboardType: TextInputType.emailAddress,
               textCapitalization: TextCapitalization.none,
               autofillHints: const [AutofillHints.email],
               textInputAction: TextInputAction.next,
+              onChanged: (_) => c.emailError.value = null,
             ),
-            const SizedBox(height: 14),
             LabeledField(
               label: 'Password',
-              controller: controller.password,
-              hint: create
-                  ? 'At least ${SignInController.minPasswordLength} characters'
-                  : null,
+              controller: c.password,
+              hint: create ? 'Create a password' : 'Enter your password',
+              error: c.passwordError.value,
+              prefixIcon: const Icon(Icons.lock_outline_rounded),
               obscureText: !shown,
               keyboardType: TextInputType.visiblePassword,
               textCapitalization: TextCapitalization.none,
               autofillHints: [
                 create ? AutofillHints.newPassword : AutofillHints.password,
               ],
-              textInputAction: TextInputAction.done,
-              onSubmitted: (_) => controller.submitEmail(create: create),
-              suffix: IconButton(
-                tooltip: shown ? 'Hide password' : 'Show password',
-                icon: Icon(
-                  shown
-                      ? Icons.visibility_off_outlined
-                      : Icons.visibility_outlined,
-                  color: p.muted,
-                ),
-                onPressed: controller.showPassword.toggle,
-              ),
+              textInputAction: create
+                  ? TextInputAction.next
+                  : TextInputAction.done,
+              onChanged: (_) => c.passwordError.value = null,
+              onSubmitted: create ? null : (_) => submit(),
+              suffix: toggle,
             ),
-            if (!create)
+            if (create) ...[
+              LabeledField(
+                label: 'Confirm password',
+                controller: c.confirmPassword,
+                hint: 'Type it again',
+                error: c.confirmError.value,
+                prefixIcon: const Icon(Icons.lock_outline_rounded),
+                obscureText: !shown,
+                keyboardType: TextInputType.visiblePassword,
+                textCapitalization: TextCapitalization.none,
+                autofillHints: const [AutofillHints.newPassword],
+                textInputAction: TextInputAction.done,
+                onChanged: (_) => c.confirmError.value = null,
+                onSubmitted: (_) => submit(),
+                suffix: toggle,
+              ),
+              const SizedBox(height: 24),
+            ] else
               Align(
                 alignment: Alignment.centerRight,
                 child: LinkButton(
                   label: 'Forgot password?',
-                  onPressed: busy == null ? controller.forgotPassword : null,
+                  underline: false,
+                  onPressed: busy == null ? c.openForgotPassword : null,
                 ),
-              )
-            else
-              const SizedBox(height: 20),
+              ),
             VaultButton(
               label: create ? 'Create account' : 'Sign in',
               loading: busy == 'email',
-              onPressed: () => controller.submitEmail(create: create),
+              onPressed: busy == null ? submit : null,
             ),
           ],
         ),
       );
     });
   }
+}
+
+class _VisibilityToggle extends StatelessWidget {
+  const _VisibilityToggle({required this.shown, required this.onPressed});
+
+  final bool shown;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) => IconButton(
+    tooltip: shown ? 'Hide password' : 'Show password',
+    icon: Icon(
+      shown ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+      color: context.palette.muted,
+    ),
+    onPressed: onPressed,
+  );
 }
 
 /// 05 Notifications permission
