@@ -42,6 +42,8 @@ class DefaultFirebaseOptions {
     messagingSenderId: '918178599820',
     projectId: 'home-vault-receipt-b47a5',
     storageBucket: 'home-vault-receipt-b47a5.firebasestorage.app',
+    iosClientId:
+        '918178599820-pf0itjhchuflnrsk8ht4pqc671p6r73j.apps.googleusercontent.com',
     iosBundleId: 'com.homevault.homeVaultReceipt',
   );
 }

@@ -16,10 +16,18 @@ abstract final class AppConfig {
     defaultValue: 'localhost',
   );
 
-  /// Google OAuth web client id, needed by Google sign-in on Android.
+  /// Google OAuth web client id. Firebase accepts Google ID tokens issued
+  /// for this client.
   static const googleServerClientId = String.fromEnvironment(
     'GOOGLE_SERVER_CLIENT_ID',
+    defaultValue:
+        '918178599820-i4uqie1usg3rnrje5v7vtr9rbtu8hkko.apps.googleusercontent.com',
   );
+
+  /// Google OAuth iOS client id; its reversed form is the URL scheme in
+  /// `ios/Runner/Info.plist`.
+  static const googleIosClientId =
+      '918178599820-pf0itjhchuflnrsk8ht4pqc671p6r73j.apps.googleusercontent.com';
 
   /// UK region: Firestore, Storage and Functions all live here.
   static const functionsRegion = 'europe-west2';

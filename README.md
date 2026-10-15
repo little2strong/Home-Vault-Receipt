@@ -141,11 +141,12 @@ Done from this repo:
 Still to do in the Firebase / Google Cloud console:
 1. **Upgrade to the Blaze plan** and set budget alerts. Cloud Storage and
    Cloud Functions require it. Then run `firebase deploy --only storage,functions`.
-2. **Authentication › Sign-in method**: enable Google and Email/Password.
-   Download the updated `google-services.json` and
-   `GoogleService-Info.plist` so they carry the OAuth client IDs. Pass the
-   web client ID to Android Google sign-in with
-   `--dart-define=GOOGLE_SERVER_CLIENT_ID=…`.
+2. **Authentication › Sign-in method**: Google and Email/Password are on.
+   The Google client IDs live in `android/app/google-services.json`,
+   `lib/core/services/app_config.dart` and the URL scheme in
+   `ios/Runner/Info.plist`. Every new signing key (release keystore, Play
+   App Signing) needs its SHA-1 added to the Android app, then a fresh
+   `google-services.json`.
 3. **Apple**: enable Push for the bundle ID and upload an APNs key to
    Firebase Cloud Messaging.
 4. **Storage**: if the default bucket is not in `europe-west2`, set

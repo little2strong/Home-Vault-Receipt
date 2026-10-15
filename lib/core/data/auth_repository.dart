@@ -1,4 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 import '../services/app_config.dart';
@@ -66,9 +67,8 @@ class AuthRepository {
   Future<void> _ensureGoogle() async {
     if (_googleReady) return;
     await GoogleSignIn.instance.initialize(
-      serverClientId: AppConfig.googleServerClientId.isEmpty
-          ? null
-          : AppConfig.googleServerClientId,
+      clientId: AppConfig.isAndroid ? null : AppConfig.googleIosClientId,
+      serverClientId: AppConfig.googleServerClientId,
     );
     _googleReady = true;
   }
@@ -158,11 +158,13 @@ class AuthRepository {
     try {
       await action();
     } on FirebaseAuthException catch (e) {
+      debugPrint('Auth failed: ${e.code} ${e.message}');
       throw AuthFailure(_message(e));
     } on GoogleSignInException catch (e) {
       if (e.code == GoogleSignInExceptionCode.canceled) {
         throw const AuthFailure('');
       }
+      debugPrint('Google sign-in failed: ${e.code.name} ${e.description}');
       throw AuthFailure('Google sign-in did not finish (${e.code.name}).');
     }
   }

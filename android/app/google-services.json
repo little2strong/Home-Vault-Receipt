@@ -12,7 +12,20 @@
           "package_name": "com.homevault.home_vault_receipt"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "918178599820-m3himvivhgjtvrek98ldcljp517827js.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.homevault.home_vault_receipt",
+            "certificate_hash": "34f11f3df32b50a1cd2a3c56a1cb69abdc0e4d99"
+          }
+        },
+        {
+          "client_id": "918178599820-i4uqie1usg3rnrje5v7vtr9rbtu8hkko.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyAqE6fAOtSPEWGx_YZjDUpsM8gZJ6csb-4"
@@ -20,7 +33,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "918178599820-i4uqie1usg3rnrje5v7vtr9rbtu8hkko.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "918178599820-pf0itjhchuflnrsk8ht4pqc671p6r73j.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.homevault.homeVaultReceipt"
+              }
+            }
+          ]
         }
       }
     }
