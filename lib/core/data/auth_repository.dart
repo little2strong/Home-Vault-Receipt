@@ -1,5 +1,4 @@
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 import '../services/app_config.dart';
@@ -13,8 +12,7 @@ class AuthFailure implements Exception {
   String toString() => message;
 }
 
-/// Sign in with Apple, Google or an email and password. The same Firebase
-/// account works in the app and on the website.
+/// Sign in with Apple, Google or an email and password.
 class AuthRepository {
   AuthRepository([FirebaseAuth? auth]) : _auth = auth ?? FirebaseAuth.instance;
 
@@ -47,20 +45,12 @@ class AuthRepository {
       ..addScope('email')
       ..addScope('name');
     await _guard(() async {
-      if (kIsWeb) {
-        await _auth.signInWithPopup(provider);
-      } else {
-        await _auth.signInWithProvider(provider);
-      }
+      await _auth.signInWithProvider(provider);
     });
   }
 
   Future<void> signInWithGoogle() async {
     await _guard(() async {
-      if (kIsWeb) {
-        await _auth.signInWithPopup(GoogleAuthProvider());
-        return;
-      }
       await _ensureGoogle();
       final account = await GoogleSignIn.instance.authenticate();
       final idToken = account.authentication.idToken;
@@ -132,22 +122,15 @@ class AuthRepository {
     final ids = u.providerData.map((p) => p.providerId).toSet();
     await _guard(() async {
       if (ids.contains('apple.com')) {
-        final p = AppleAuthProvider();
-        kIsWeb
-            ? await u.reauthenticateWithPopup(p)
-            : await u.reauthenticateWithProvider(p);
+        await u.reauthenticateWithProvider(AppleAuthProvider());
       } else if (ids.contains('google.com')) {
-        if (kIsWeb) {
-          await u.reauthenticateWithPopup(GoogleAuthProvider());
-        } else {
-          await _ensureGoogle();
-          final account = await GoogleSignIn.instance.authenticate();
-          await u.reauthenticateWithCredential(
-            GoogleAuthProvider.credential(
-              idToken: account.authentication.idToken,
-            ),
-          );
-        }
+        await _ensureGoogle();
+        final account = await GoogleSignIn.instance.authenticate();
+        await u.reauthenticateWithCredential(
+          GoogleAuthProvider.credential(
+            idToken: account.authentication.idToken,
+          ),
+        );
       } else {
         if (password == null || password.isEmpty) {
           throw const AuthFailure('Enter your password to confirm.');
@@ -163,7 +146,7 @@ class AuthRepository {
   }
 
   Future<void> signOut() async {
-    if (!kIsWeb && _googleReady) {
+    if (_googleReady) {
       try {
         await GoogleSignIn.instance.signOut();
       } catch (_) {}

@@ -5,7 +5,6 @@ import '../../../app/routes/app_routes.dart';
 import '../../../core/constants/app_sizes.dart';
 import '../../../core/data/vault_repository.dart';
 import '../../../core/data/vault_store.dart';
-import '../../../core/services/app_config.dart';
 import '../../../core/theme/vault_palette.dart';
 import '../../../core/widgets/app_page.dart';
 import '../../../core/widgets/buttons.dart';
@@ -143,12 +142,6 @@ class AccountView extends StatelessWidget {
               label: 'Sign out',
               icon: Icons.logout_rounded,
               onPressed: () => confirmSignOut(context),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'Also on the web at ${AppConfig.webDomain} — same account.',
-              textAlign: TextAlign.center,
-              style: TextStyle(color: p.muted),
             ),
           ],
         );

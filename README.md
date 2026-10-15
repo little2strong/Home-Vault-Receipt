@@ -1,9 +1,8 @@
 # Home Vault
 
-Receipts and a room-by-room home inventory: a Flutter app for iOS and
-Android, plus a Flutter website, running entirely on Firebase. Built to the
-*Home Vault — Developer Spec (Flutter + Firebase)* of 6 October 2026: 38 app
-pages and 6 website pages.
+Receipts and a room-by-room home inventory: a Flutter app for Android and
+iOS only, running entirely on Firebase. Built to the
+*Home Vault — Developer Spec (Flutter + Firebase)* of 6 October 2026.
 
 ## Product rules that never bend
 
@@ -16,10 +15,9 @@ pages and 6 website pages.
 ## Stack
 
 Flutter with GetX (state, routing, dependency injection) · Firebase Auth
-(Apple, Google, email link) · Cloud Firestore · Cloud Storage · Cloud
+(Google, email and password) · Cloud Firestore · Cloud Storage · Cloud
 Functions (TypeScript, 2nd gen) · Cloud Messaging · App Check · Crashlytics ·
-Remote Config · Hosting · on-device ML Kit text recognition and document
-scanner.
+Remote Config · on-device ML Kit text recognition and document scanner.
 
 ## Getting started
 
@@ -27,15 +25,10 @@ scanner.
 flutter pub get
 flutter run                                          # app against the live project
 flutter run --dart-define=USE_EMULATORS=true         # app against local emulators
-flutter run -d chrome                                # website
 ```
 
 Running against the emulators from an Android emulator also needs
-`--dart-define=EMULATOR_HOST=10.0.2.2`. On the website in emulator mode, a
-full page reload signs you out: the Auth SDK checks the saved emulator
-session against production before the emulator connection is set up. Sign in
-again with a fresh email link. This does not happen against the live
-project.
+`--dart-define=EMULATOR_HOST=10.0.2.2`.
 
 Firebase CLI emulators need **Java 21 or newer** (`java -version`).
 
@@ -52,7 +45,7 @@ npm run build
 ```
 lib/
 ├── main.dart                  Firebase start-up, then the app
-├── firebase_options.dart      FlutterFire config (Android, iOS, web)
+├── firebase_options.dart      FlutterFire config (Android, iOS)
 ├── app/                       GetMaterialApp, routes, app-wide bindings
 ├── core/
 │   ├── constants/             Design tokens (colours, spacing, radii)
@@ -67,7 +60,8 @@ lib/
 │   │                          notifications, connectivity
 │   ├── theme/, utils/, widgets/
 └── features/                  One folder per area, GetX style
-    ├── start/                 01–05 splash, welcome, sign-in, email, reminders
+    ├── start/                 01–05 splash, welcome, sign-in, create account,
+    │                          forgot password, reminders
     ├── shell/                 tab bar with the centre Add button
     ├── home/                  06 Home, 07 Search
     ├── add/                   08–18 add sheet, camera, pages, reading, review,
@@ -78,7 +72,6 @@ lib/
     ├── warranties/            30–31 warranties, edit warranty
     ├── account/               32–38 account, spending, cars, export, export
     │                          ready, settings, delete; plus pending, help, legal
-    └── web/                   W1–W6 website
 functions/src/                 Cloud Functions and their tests
 firestore.rules, storage.rules, firestore.indexes.json, firebase.json
 ```
@@ -141,34 +134,28 @@ receipt numbers, totals, upload times or export links). The emulators need
 The project is `home-vault-receipt-b47a5` (see `.firebaserc`).
 
 Done from this repo:
-- Android, iOS and web apps are registered. `lib/firebase_options.dart` includes web.
+- Android and iOS apps are registered in `lib/firebase_options.dart`.
 - The debug SHA-1 and SHA-256 are added to the Android app.
 - Firestore is in `europe-west2`, with rules and indexes deployed.
 
 Still to do in the Firebase / Google Cloud console:
 1. **Upgrade to the Blaze plan** and set budget alerts. Cloud Storage and
-   Cloud Functions require it. Then run `firebase deploy --only storage,functions,hosting`.
-2. **Authentication › Sign-in method**: enable Apple, Google and Email link
-   (passwordless). Add `home-vault-receipt-b47a5.web.app` to Authorised
-   domains. Download the updated `google-services.json` and
+   Cloud Functions require it. Then run `firebase deploy --only storage,functions`.
+2. **Authentication › Sign-in method**: enable Google and Email/Password.
+   Download the updated `google-services.json` and
    `GoogleService-Info.plist` so they carry the OAuth client IDs. Pass the
    web client ID to Android Google sign-in with
    `--dart-define=GOOGLE_SERVER_CLIENT_ID=…`.
-3. **Apple**: enable Sign in with Apple, Associated Domains and Push for the
-   bundle ID, and upload an APNs key to Firebase Cloud Messaging. Replace
-   `TEAMID` in `web/.well-known/apple-app-site-association`.
+3. **Apple**: enable Push for the bundle ID and upload an APNs key to
+   Firebase Cloud Messaging.
 4. **Storage**: if the default bucket is not in `europe-west2`, set
    `STORAGE_TRIGGER_REGION` (in `functions/.env`) to the bucket's region.
-   Set CORS on the bucket so the website can load photos:
-   `gsutil cors set cors.json gs://home-vault-receipt-b47a5.firebasestorage.app`.
-5. **App Check**: register Play Integrity, App Attest and reCAPTCHA
-   Enterprise (pass `--dart-define=RECAPTCHA_SITE_KEY=…` to the web build).
-   Keep it in monitoring until traffic looks right, then enforce it.
+5. **App Check**: register Play Integrity and App Attest. Keep it in
+   monitoring until traffic looks right, then enforce it.
 6. **Signed export links**: grant the Functions service account
    *Service Account Token Creator* so exports use signed URLs. Without it,
    they fall back to a token link and the file is deleted after 24 hours.
-7. Add the release keystore's SHA-256 to the Android app and to
-   `web/.well-known/assetlinks.json` before publishing.
+7. Add the release keystore's SHA-256 to the Android app before publishing.
 
 ## Privacy
 

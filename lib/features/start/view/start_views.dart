@@ -660,7 +660,7 @@ class _GoogleButton extends StatelessWidget {
   }
 }
 
-/// Email and password fields, shared by sign-in (03) and the website (W1).
+/// Email and password fields, shared by sign-in (03) and create account.
 class EmailPasswordForm extends StatelessWidget {
   const EmailPasswordForm({
     super.key,
@@ -670,7 +670,7 @@ class EmailPasswordForm extends StatelessWidget {
 
   final SignInController controller;
 
-  /// True on the create-account screen. The website always signs in.
+  /// True on the create-account screen.
   final bool create;
 
   @override

@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:share_plus/share_plus.dart';
@@ -584,7 +583,7 @@ class ExportReadyView extends StatelessWidget {
           actions: [
             if (ready) ...[
               VaultButton(
-                label: kIsWeb ? 'Download' : 'Save to phone',
+                label: 'Save to phone',
                 icon: Icons.download_rounded,
                 onPressed: () => _open(job.url!),
               ),
@@ -984,7 +983,7 @@ class DeleteAccountView extends GetView<DeleteAccountController> {
           Text('Delete your account?', style: t.headlineMedium),
           const SizedBox(height: 12),
           Text(
-            'This permanently deletes, from the app and the website:',
+            'This permanently deletes:',
             style: t.bodyLarge?.copyWith(color: p.muted),
           ),
           const SizedBox(height: 16),
@@ -1013,10 +1012,8 @@ class DeleteAccountView extends GetView<DeleteAccountController> {
           InfoNote(
             'Download a copy of everything first',
             icon: Icons.download_rounded,
-            onTap: () => Get.toNamed(
-              kIsWeb ? Routes.webDownloads : Routes.export,
-              arguments: ExportKind.archive,
-            ),
+            onTap: () =>
+                Get.toNamed(Routes.export, arguments: ExportKind.archive),
           ),
           const SizedBox(height: 14),
           Text(
@@ -1163,11 +1160,6 @@ class HelpView extends StatelessWidget {
         'How do I get my data out?',
         'Account › Download lists. Downloads, viewing and deleting are always free.',
       ),
-      (
-        'Can I use it on a computer?',
-        'Yes — sign in on the website with the same account to view items and '
-            'download your lists.',
-      ),
     ];
     return AppPage(
       title: 'Help',
@@ -1234,7 +1226,7 @@ class LegalView extends StatelessWidget {
     ),
     (
       'Why',
-      'Only to keep your records, show them to you on the app and website, '
+      'Only to keep your records, show them to you in the app, '
           'send the reminders you set, and build the lists you ask for. No '
           'marketing and no selling of data.',
     ),

@@ -18,7 +18,4 @@ abstract final class AppSizes {
 
   /// App content is centred and capped on tablets.
   static const maxContentWidth = 560.0;
-
-  /// Website content width.
-  static const maxWebWidth = 1080.0;
 }

@@ -35,31 +35,11 @@
       "predeploy": ["npm --prefix \"$RESOURCE_DIR\" run build"]
     }
   ],
-  "hosting": {
-    "public": "build/web",
-    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
-    "headers": [
-      {
-        "source": "**",
-        "headers": [
-          { "key": "X-Content-Type-Options", "value": "nosniff" },
-          { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
-          { "key": "X-Frame-Options", "value": "DENY" }
-        ]
-      },
-      {
-        "source": "/.well-known/**",
-        "headers": [{ "key": "Content-Type", "value": "application/json" }]
-      }
-    ],
-    "rewrites": [{ "source": "**", "destination": "/index.html" }]
-  },
   "emulators": {
     "auth": { "port": 9099 },
     "firestore": { "port": 8080 },
     "storage": { "port": 9199 },
     "functions": { "port": 5001 },
-    "hosting": { "port": 5000 },
     "ui": { "enabled": true, "port": 4000 },
     "singleProjectMode": true
   }

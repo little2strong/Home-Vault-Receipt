@@ -40,7 +40,6 @@ class NotificationService extends GetxService {
   @override
   void onInit() {
     super.onInit();
-    if (kIsWeb) return;
     unawaited(_setUp());
     _userWorker = ever(store.user, (u) {
       if (u != null) unawaited(syncDevice());
@@ -83,7 +82,6 @@ class NotificationService extends GetxService {
 
   /// Shows the system prompt. Returns true when reminders can be sent.
   Future<bool> requestPermission() async {
-    if (kIsWeb) return false;
     final settings = await FirebaseMessaging.instance.requestPermission();
     permission.value = settings.authorizationStatus;
     if (store.uid != null) {
@@ -96,7 +94,7 @@ class NotificationService extends GetxService {
   /// Registers this device's token and timezone so reminders reach it at
   /// the right local time.
   Future<void> syncDevice() async {
-    if (kIsWeb || store.uid == null) return;
+    if (store.uid == null) return;
     try {
       final tz = await currentTimezone();
       await repo.ensureProfile(

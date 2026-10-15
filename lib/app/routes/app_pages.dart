@@ -23,7 +23,6 @@ import '../../features/shell/view/shell_view.dart';
 import '../../features/start/binding/start_bindings.dart';
 import '../../features/start/view/start_views.dart';
 import '../../features/warranties/view/edit_warranty_view.dart';
-import '../../features/web/view/web_pages.dart';
 import 'app_routes.dart';
 
 /// GetPage list: route → view + binding.
@@ -220,35 +219,4 @@ abstract final class AppPages {
   static final _roomsBinding = BindingsBuilder(
     () => Get.lazyPut(() => RoomsController(Get.find(), Get.find())),
   );
-
-  /// The website: 6 pages.
-  static final web = <GetPage<dynamic>>[
-    ..._common,
-    GetPage(
-      name: Routes.splash,
-      page: () => const SplashView(),
-      binding: SplashBinding(),
-    ),
-    GetPage(
-      name: Routes.webSignIn,
-      page: () => const WebSignInView(),
-      binding: SignInBinding(),
-    ),
-    GetPage(name: Routes.webDashboard, page: () => const WebDashboardView()),
-    GetPage(
-      name: Routes.webProducts,
-      page: () => const WebProductsView(),
-      binding: BindingsBuilder(
-        () => Get.lazyPut(() => WebProductsController(Get.find())),
-      ),
-    ),
-    GetPage(name: Routes.webItemPattern, page: () => const WebItemView()),
-    GetPage(name: Routes.webInventory, page: () => const WebInventoryView()),
-    GetPage(name: Routes.webDownloads, page: () => const WebDownloadsView()),
-    GetPage(
-      name: Routes.webDeleteAccount,
-      page: () => const DeleteAccountView(),
-      binding: _deleteBinding,
-    ),
-  ];
 }

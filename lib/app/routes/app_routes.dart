@@ -58,14 +58,4 @@ abstract final class Routes {
   static const help = '/help';
   static const privacy = '/privacy';
   static const terms = '/terms';
-
-  // Website (W1–W6)
-  static const webSignIn = '/sign-in'; // W1
-  static const webDashboard = '/dashboard'; // W2
-  static const webProducts = '/products'; // W3
-  static String webItem(String id) => '/products/$id';
-  static const webItemPattern = '/products/:id'; // W4
-  static const webInventory = '/inventory'; // W5
-  static const webDownloads = '/downloads'; // W6
-  static const webDeleteAccount = '/account/delete';
 }

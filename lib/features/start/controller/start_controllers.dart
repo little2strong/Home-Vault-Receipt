@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -38,16 +37,15 @@ class SplashController extends GetxController {
     if (remaining > Duration.zero) await Future<void>.delayed(remaining);
     if (isClosed) return;
     if (store.user.value != null) {
-      final next = Get.arguments;
-      await afterSignIn(next: next is String ? next : null);
+      await afterSignIn();
     } else {
-      await Get.offAllNamed(kIsWeb ? Routes.webSignIn : Routes.welcome);
+      await Get.offAllNamed(Routes.welcome);
     }
   }
 }
 
 /// After any successful sign-in: make sure the profile exists, then home.
-Future<void> afterSignIn({String? next, String? displayName}) async {
+Future<void> afterSignIn({String? displayName}) async {
   final store = Get.find<VaultStore>();
   final user = store.user.value;
   if (user != null) {
@@ -55,32 +53,27 @@ Future<void> afterSignIn({String? next, String? displayName}) async {
       await Get.find<VaultRepository>().ensureProfile(
         displayName: displayName ?? user.displayName,
         email: user.email,
-        timezone: kIsWeb ? null : await NotificationService.currentTimezone(),
+        timezone: await NotificationService.currentTimezone(),
       );
     } catch (_) {
       // Offline first launch: the cached profile arrives later.
     }
   }
-  if (kIsWeb) {
-    await Get.offAllNamed(next ?? Routes.webDashboard);
-  } else {
-    await Get.offAllNamed(Routes.shell);
-  }
+  await Get.offAllNamed(Routes.shell);
 }
 
-/// Signs out and leaves the signed-in app, on the phone or the website.
+/// Signs out and goes back to the welcome screen.
 Future<void> signOutOfVault() async {
   await Get.find<AuthRepository>().signOut();
-  await Get.offAllNamed(kIsWeb ? Routes.webSignIn : Routes.welcome);
+  await Get.offAllNamed(Routes.welcome);
 }
 
 Future<void> confirmSignOut(BuildContext context) async {
   final ok = await Pickers.confirm(
     context,
     title: 'Sign out?',
-    message: kIsWeb
-        ? 'You can sign back in with the same account.'
-        : 'Drafts not yet saved stay on this phone for when you sign back in.',
+    message:
+        'Drafts not yet saved stay on this phone for when you sign back in.',
     action: 'Sign out',
   );
   if (!ok) return;
@@ -303,7 +296,6 @@ class NotificationsController extends GetxController {
 
 /// Opens the explainer the first time a reminder is set, never before.
 Future<void> askForRemindersOnce() async {
-  if (kIsWeb) return;
   final service = Get.find<NotificationService>();
   final profile = Get.find<VaultStore>().profile.value;
   if (service.granted) return;

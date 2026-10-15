@@ -46,13 +46,6 @@ abstract final class FirebaseBootstrap {
   static Future<void> _appCheck() async {
     if (AppConfig.useEmulators) return;
     try {
-      if (kIsWeb) {
-        if (AppConfig.recaptchaSiteKey.isEmpty) return;
-        await FirebaseAppCheck.instance.activate(
-          providerWeb: ReCaptchaEnterpriseProvider(AppConfig.recaptchaSiteKey),
-        );
-        return;
-      }
       await FirebaseAppCheck.instance.activate(
         providerAndroid: kDebugMode
             ? const AndroidDebugProvider()
@@ -69,7 +62,6 @@ abstract final class FirebaseBootstrap {
   /// Crash reports carry stack traces only — never receipt text, images,
   /// addresses or tokens.
   static void _crashReporting() {
-    if (kIsWeb) return;
     final crashlytics = FirebaseCrashlytics.instance;
     unawaited(crashlytics.setCrashlyticsCollectionEnabled(!kDebugMode));
     FlutterError.onError = crashlytics.recordFlutterFatalError;

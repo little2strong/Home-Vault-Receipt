@@ -1,4 +1,4 @@
-/// Word-prefix matching used by Search (07), Products and the website.
+/// Word-prefix matching used by Search (07) and Products.
 /// Mirrors the server's lowercase `searchTokens`.
 abstract final class SearchText {
   static final _split = RegExp(r"[^a-z0-9£€$'&]+");

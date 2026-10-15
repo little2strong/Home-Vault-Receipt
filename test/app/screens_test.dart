@@ -234,7 +234,6 @@ Future<void> boot(
   WidgetTester tester,
   String route, {
   Size size = const Size(390, 844),
-  bool web = false,
 }) async {
   Get.testMode = true;
   Get.reset();
@@ -266,7 +265,7 @@ Future<void> boot(
     GetMaterialApp(
       theme: AppTheme.light,
       initialRoute: route,
-      getPages: web ? AppPages.web : AppPages.app,
+      getPages: AppPages.app,
     ),
   );
   await tester.runAsync(
@@ -445,46 +444,5 @@ void main() {
     addTearDown(t.platformDispatcher.clearTextScaleFactorTestValue);
     await boot(t, Routes.shell);
     expect(t.takeException(), isNull);
-  });
-
-  group('website on a laptop', () {
-    const laptop = Size(1280, 1000);
-
-    testWidgets('W2 dashboard', (t) async {
-      await boot(t, Routes.webDashboard, size: laptop, web: true);
-      expect(find.text('Welcome back, Sam'), findsOneWidget);
-      expect(find.text('Quick downloads'), findsOneWidget);
-      expect(t.takeException(), isNull);
-    });
-
-    testWidgets('W3 products', (t) async {
-      await boot(t, Routes.webProducts, size: laptop, web: true);
-      expect(find.text('Showing 1–6 of 6'), findsOneWidget);
-      expect(t.takeException(), isNull);
-    });
-
-    testWidgets('W4 item detail', (t) async {
-      await boot(t, Routes.webItem('tv'), size: laptop, web: true);
-      expect(find.text('View original receipt'), findsOneWidget);
-      expect(t.takeException(), isNull);
-    });
-
-    testWidgets('W5 home inventory', (t) async {
-      await boot(t, Routes.webInventory, size: laptop, web: true);
-      expect(find.text('Download for insurer'), findsOneWidget);
-      expect(find.text('No receipt · no photo'), findsOneWidget);
-      expect(t.takeException(), isNull);
-    });
-
-    testWidgets('W6 downloads', (t) async {
-      await boot(t, Routes.webDownloads, size: laptop, web: true);
-      expect(find.text('Everything'), findsOneWidget);
-      expect(t.takeException(), isNull);
-    });
-
-    testWidgets('W2 dashboard on a phone-width browser', (t) async {
-      await boot(t, Routes.webDashboard, web: true);
-      expect(t.takeException(), isNull);
-    });
   });
 }

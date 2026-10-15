@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../theme/vault_palette.dart';
 
-/// The house-and-dial mark from the splash and website header.
+/// The house-and-dial mark from the splash and sign-in screens.
 class BrandMark extends StatelessWidget {
   const BrandMark({super.key, this.size = 128});
 
@@ -61,7 +61,7 @@ class _HousePainter extends CustomPainter {
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
-/// Wordmark row for the website header.
+/// Logo and wordmark above the sign-in and create-account titles.
 class BrandRow extends StatelessWidget {
   const BrandRow({super.key, this.light = false});
 

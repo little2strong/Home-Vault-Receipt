@@ -64,10 +64,7 @@ void main() {
       await pumpAuth(t, const SignInView());
       await t.tap(find.text('Sign in'));
       await t.pump();
-      expect(
-        find.text('Enter your email address, like you@example.com.'),
-        findsOneWidget,
-      );
+      expect(find.text('Enter your email address.'), findsOneWidget);
     });
 
     testWidgets('asks for the password', (t) async {
@@ -78,19 +75,31 @@ void main() {
       expect(find.text('Enter your password.'), findsOneWidget);
     });
 
-    testWidgets('create account needs a long enough password', (t) async {
+    testWidgets('create account asks for a name and matching passwords', (
+      t,
+    ) async {
       await pumpAuth(t, const SignUpView());
-      expect(find.text('Create account'), findsOneWidget);
+      expect(find.text('Full name'), findsOneWidget);
+      expect(find.text('Confirm password'), findsOneWidget);
       expect(find.text('Forgot password?'), findsNothing);
 
       await t.enterText(field('Email address'), 'sam@example.com');
-      await t.enterText(field('Password'), 'short');
+      await t.enterText(field('Password'), 'abc');
+      await t.enterText(field('Confirm password'), 'abd');
       await t.tap(find.text('Create account'));
       await t.pump();
-      expect(
-        find.text('Choose a password with at least 8 characters.'),
-        findsOneWidget,
-      );
+      expect(find.text('Enter your name.'), findsOneWidget);
+      expect(find.text('Passwords do not match.'), findsOneWidget);
+      expect(find.textContaining('characters'), findsNothing);
+    });
+
+    testWidgets('forgot password asks for an email first', (t) async {
+      await pumpAuth(t, const ForgotPasswordView());
+      expect(find.text('Forgot your password?'), findsOneWidget);
+      await t.tap(find.text('Send reset link'));
+      await t.pump();
+      expect(find.text('Enter your email address.'), findsOneWidget);
+      expect(t.takeException(), isNull);
     });
 
     testWidgets('the eye button shows and hides the password', (t) async {

@@ -13,11 +13,6 @@ import '../../core/services/text_recognition_service.dart';
 
 /// App-wide services, alive for the whole session.
 class InitialBinding extends Bindings {
-  InitialBinding({this.mobile = true});
-
-  /// The website registers only what read-only views and downloads need.
-  final bool mobile;
-
   @override
   void dependencies() {
     final auth = Get.put(AuthRepository(), permanent: true);
@@ -31,8 +26,6 @@ class InitialBinding extends Bindings {
       permanent: true,
     );
     final connectivity = Get.put(ConnectivityService(), permanent: true);
-    if (!mobile) return;
-
     final capture = Get.put(CaptureService(), permanent: true);
     Get
       ..put(TextRecognitionService(), permanent: true)

@@ -6,11 +6,6 @@
 	<array>
 		<string>Default</string>
 	</array>
-	<key>com.apple.developer.associated-domains</key>
-	<array>
-		<string>webcredentials:home-vault-receipt-b47a5.web.app</string>
-		<string>webcredentials:home-vault-receipt-b47a5.firebaseapp.com</string>
-	</array>
 	<key>aps-environment</key>
 	<string>development</string>
 </dict>
