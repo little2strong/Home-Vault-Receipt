@@ -7,11 +7,9 @@ import '../../../core/models/vault_models.dart';
 import '../../../core/theme/vault_palette.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../core/widgets/app_page.dart';
-import '../../../core/widgets/buttons.dart';
 import '../../../core/widgets/feedback.dart';
 import '../../../core/widgets/item_rows.dart';
 import '../../../core/widgets/vault_ui.dart';
-import '../../add/view/add_sheet.dart';
 import '../../shell/controller/shell_controller.dart';
 import '../controller/home_controller.dart';
 
@@ -40,7 +38,8 @@ class HomeView extends GetView<HomeController> {
               AppSizes.pagePadding,
               AppSizes.lg,
               AppSizes.pagePadding,
-              AppSizes.xl,
+              // Clear the raised centre Add button on the tab bar.
+              100,
             ),
             children: [
               Row(
@@ -209,18 +208,14 @@ class HomeView extends GetView<HomeController> {
                   child: Center(child: CircularProgressIndicator()),
                 )
               else if (recent.isEmpty)
-                VaultCard(
+                const VaultCard(
                   child: EmptyState(
                     icon: Icons.receipt_long_outlined,
                     title: 'Add your first receipt',
                     message:
-                        'Scan a paper receipt, choose a photo or import a PDF. '
-                        'You check the details before anything is saved.',
-                    action: VaultButton(
-                      label: 'Add a receipt',
-                      expand: false,
-                      onPressed: AddSheet.open,
-                    ),
+                        'Tap + below to scan a paper receipt, choose a photo '
+                        'or import a PDF. You check the details before '
+                        'anything is saved.',
                   ),
                 )
               else

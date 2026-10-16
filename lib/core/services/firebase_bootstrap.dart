@@ -43,16 +43,14 @@ abstract final class FirebaseBootstrap {
   }
 
   /// Monitoring first; enforcement is switched on in the console later.
+  /// Debug builds skip App Check until a debug token is registered for the
+  /// device — otherwise Storage gets a placeholder token and can fail.
   static Future<void> _appCheck() async {
-    if (AppConfig.useEmulators) return;
+    if (AppConfig.useEmulators || kDebugMode) return;
     try {
       await FirebaseAppCheck.instance.activate(
-        providerAndroid: kDebugMode
-            ? const AndroidDebugProvider()
-            : const AndroidPlayIntegrityProvider(),
-        providerApple: kDebugMode
-            ? const AppleDebugProvider()
-            : const AppleAppAttestWithDeviceCheckFallbackProvider(),
+        providerAndroid: const AndroidPlayIntegrityProvider(),
+        providerApple: const AppleAppAttestWithDeviceCheckFallbackProvider(),
       );
     } catch (e) {
       debugPrint('App Check not active: ${e.runtimeType}');

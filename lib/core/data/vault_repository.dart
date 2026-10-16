@@ -117,10 +117,15 @@ class VaultRepository {
       return;
     }
     final data = snap.data() ?? {};
+    final existingName = data['displayName'];
+    final nameMissing =
+        existingName == null ||
+        (existingName is String && existingName.trim().isEmpty);
     final patch = <String, dynamic>{
-      if (data['displayName'] == null && displayName != null)
-        'displayName': displayName,
-      if (data['email'] == null && email != null) 'email': email,
+      if (nameMissing && displayName != null && displayName.trim().isNotEmpty)
+        'displayName': displayName.trim(),
+      if ((data['email'] == null || data['email'] == '') && email != null)
+        'email': email,
       if (timezone != null && data['timezone'] != timezone)
         'timezone': timezone,
     };
