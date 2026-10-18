@@ -133,16 +133,22 @@ class ProductFilters {
       case WarrantyFilter.active:
         if (end == null || end.isBefore(today)) return false;
     }
+    // Same windows as the spending totals: the last 30 days is today and the
+    // 29 before it; the last year ends today and starts a year ago + 1 day.
     final bought = i.purchaseDate;
     switch (this.bought) {
       case BoughtFilter.any:
         break;
       case BoughtFilter.days30:
-        if (bought == null || bought.isBefore(Dates.addDays(today, -30))) {
+        if (bought == null ||
+            bought.isBefore(Dates.addDays(today, -29)) ||
+            bought.isAfter(today)) {
           return false;
         }
       case BoughtFilter.year:
-        if (bought == null || bought.isBefore(Dates.addMonths(today, -12))) {
+        if (bought == null ||
+            bought.isBefore(Dates.addDays(Dates.addMonths(today, -12), 1)) ||
+            bought.isAfter(today)) {
           return false;
         }
     }

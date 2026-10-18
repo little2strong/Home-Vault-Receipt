@@ -102,7 +102,9 @@ class _Row {
 
   String get text {
     final sorted = [...lines]..sort((a, b) => a.left.compareTo(b.left));
-    return sorted.map((l) => l.text.trim()).join('  ');
+    return ReceiptParser.normalise(
+      sorted.map((l) => l.text.trim()).join('  '),
+    );
   }
 
   LineBox get box {
@@ -142,13 +144,61 @@ class ReceiptParser {
   static final _qtyOnlyRow = RegExp(
     r'^(\d{1,3})\s*[xX@×]\s*(?:£|€|\$)?(\d+\.\d{2})',
   );
+  // `LAMP 2 @ 24.00` once the line total is taken off the end.
+  static final _qtyMidline = RegExp(
+    r'\s+(\d{1,3})\s*[xX@×]\s*(?:£|€|\$)?(\d+\.\d{2})(?:\s*each)?$',
+  );
+  // `BANANAS 0.856 kg @ £0.68/kg`
+  static final _weighed = RegExp(
+    r'\s+\d+(?:\.\d+)?\s*kg\s*@?\s*(?:£|€|\$)?\d+\.\d{2}\s*/\s*kg$',
+    caseSensitive: false,
+  );
   static final _numericDate = RegExp(
     r'\b(\d{1,2}[/\-.]\d{1,2}[/\-.](?:\d{4}|\d{2}))\b',
   );
   static final _writtenDate = RegExp(
     r'\b(\d{1,2})(?:st|nd|rd|th)?\s+([A-Za-z]{3,9})\.?,?\s+(\d{4})\b',
   );
-  static final _isoDate = RegExp(r'\b(\d{4})-(\d{2})-(\d{2})\b');
+  // `Oct 1, 2026`
+  static final _writtenDateMonthFirst = RegExp(
+    r'\b([A-Za-z]{3,9})\.?\s+(\d{1,2})(?:st|nd|rd|th)?,?\s+(\d{4})\b',
+  );
+  static final _isoDate = RegExp(r'\b(\d{4}[/\-.]\d{1,2}[/\-.]\d{1,2})\b');
+  // Dates near these words are not the purchase date. `exp` must be a word
+  // of its own so "Tesco Express" still counts.
+  static final _notPurchaseDate = RegExp(
+    r'\bexp(?:iry|ires?|\b|[.:/])|return|refund|valid|until|due|warranty|guarantee',
+  );
+  // `CARD 12.99`, `DEBIT CARD`, but not `GIFT CARD` or `SD CARD`.
+  static final _paymentCard = RegExp(
+    r'^(?:(?:credit|debit|bank|payment|visa|master|contactless)\s+)?card'
+    r'(?:\s+(?:payment|sale|tendered|paid|no\.?|number|ending.*))?$',
+  );
+
+  // OCR misreads in amounts, fixed before anything is parsed.
+  static final _euroThousands = RegExp(r'(\d)\.(\d{3}),(\d{2})(?!\d)');
+  static final _decimalComma = RegExp(r'(\d),(\d{2})(?![\d,])');
+  static final _spacedDecimal = RegExp(r'(\d) ?\. ?(\d{2})(?!\d)');
+  static final _letterO = RegExp(
+    r'(?<=\d)[Oo](?=[\d.,])|(?<=\d[.,])[Oo]|(?<=\d[.,]\d)[Oo]',
+  );
+  // A zero between letters is the letter O (`B0OKCASE`); `PS5`, `V12` and
+  // `64GB` are left alone.
+  static final _zeroInWord = RegExp(r'(?<=[A-Za-z])0(?=[A-Za-z])');
+  // A bracket stuck to the `@` of `2 @ 24.00`.
+  static final _bracketedAt = RegExp(r'[(\[{]\s*@|@\s*[)\]}]');
+
+  /// Fixes the common ways text recognition garbles prices: `12,99` for
+  /// `12.99`, `1.234,56` for `1234.56`, `12. 99`, and the letter O in
+  /// place of a zero (`1O.99`), plus a zero read for an O inside a word and
+  /// stray brackets around `@`.
+  static String normalise(String text) => text
+      .replaceAll(_zeroInWord, 'O')
+      .replaceAll(_bracketedAt, '@')
+      .replaceAll(_letterO, '0')
+      .replaceAllMapped(_euroThousands, (m) => '${m[1]}${m[2]}.${m[3]}')
+      .replaceAllMapped(_decimalComma, (m) => '${m[1]}.${m[2]}')
+      .replaceAllMapped(_spacedDecimal, (m) => '${m[1]}.${m[2]}');
   static final _orderNumber = RegExp(
     r'\b(?:order|receipt|invoice|transaction|trans|ref(?:erence)?)\s*(?:no\.?|number|num|#|id)?\s*[:#.]?\s*([A-Z0-9][A-Z0-9\-/]{3,})',
     caseSensitive: false,
@@ -167,7 +217,6 @@ class ReceiptParser {
     'tax',
     'change',
     'cash',
-    'card',
     'visa',
     'mastercard',
     'amex',
@@ -196,7 +245,8 @@ class ReceiptParser {
     'merchant',
     'terminal',
     'aid:',
-    'pan',
+    'pan seq',
+    'pan:',
     'expiry',
     'approved',
     'cashback',
@@ -289,6 +339,8 @@ class ReceiptParser {
     'LED',
     'LCD',
     'USB',
+    'SD',
+    'SIM',
     'UK',
     'XL',
     'XXL',
@@ -529,7 +581,7 @@ class ReceiptParser {
     final shop = _shop(texts);
     final date = _date(texts);
     final total = _total(rows);
-    final tax = _tax(rows);
+    final tax = _tax(rows, total?.amount);
     final returns = _returns(texts);
     final purchaseDate = date?.date;
 
@@ -577,7 +629,7 @@ class ReceiptParser {
 
   /// The amount a row ends with, in minor units, or null.
   static int? trailingAmount(String text) {
-    final cleaned = text.trim().replaceFirst(_trailingCode, '');
+    final cleaned = normalise(text.trim()).replaceFirst(_trailingCode, '');
     final matches = _amount.allMatches(cleaned).toList();
     if (matches.isEmpty) return null;
     final m = matches.last;
@@ -590,7 +642,7 @@ class ReceiptParser {
   }
 
   static String _withoutAmount(String text) {
-    final cleaned = text.trim().replaceFirst(_trailingCode, '');
+    final cleaned = normalise(text.trim()).replaceFirst(_trailingCode, '');
     final matches = _amount.allMatches(cleaned).toList();
     if (matches.isEmpty) return cleaned;
     return cleaned.substring(0, matches.last.start).trim();
@@ -598,17 +650,50 @@ class ReceiptParser {
 
   // ------------------------------------------------------------------ shop
 
+  /// Shop names that are also everyday words ("see you next time", "boots",
+  /// "bramley apples"); trusted only in the header.
+  static const _commonWordShops = {
+    'next',
+    'game',
+    'shell',
+    'apple',
+    'boots',
+    'iceland',
+    'pret',
+    'bp',
+    'costa',
+    'the range',
+  };
+
   String? _shop(List<String> texts) {
-    final top = texts.take(8).join('\n').toLowerCase();
+    // The header: the rows above the first priced line. On a short receipt
+    // the first eight rows can reach the footer ("See you next time").
+    final header = texts
+        .take(8)
+        .takeWhile((t) => trailingAmount(t) == null)
+        .join('\n')
+        .toLowerCase();
     final all = texts.join('\n').toLowerCase();
-    for (final source in [top, all]) {
+
+    /// The known shop named earliest in [source].
+    String? earliest(String source, {required bool anyName}) {
+      String? best;
+      var bestAt = -1;
       for (final entry in knownShops.entries) {
+        if (!anyName && _commonWordShops.contains(entry.key)) continue;
         final key = RegExp.escape(entry.key);
-        if (RegExp('(^|[^a-z])$key([^a-z]|\$)').hasMatch(source)) {
-          return entry.value;
+        final m = RegExp('(^|[^a-z])$key([^a-z]|\$)').firstMatch(source);
+        if (m != null && (bestAt < 0 || m.start < bestAt)) {
+          best = entry.value;
+          bestAt = m.start;
         }
       }
+      return best;
     }
+
+    final known =
+        earliest(header, anyName: true) ?? earliest(all, anyName: false);
+    if (known != null) return known;
     for (final text in texts.take(5)) {
       final t = text.trim();
       if (t.length < 3 || !_letters.hasMatch(t)) continue;
@@ -632,25 +717,24 @@ class ReceiptParser {
     final latest = Dates.addDays(_clock(), 1);
     final candidates = <ParsedReceiptDate>[];
     for (final text in texts) {
-      final lower = text.toLowerCase();
       // Expiry, return and warranty dates are not the purchase date.
-      if (lower.contains('exp') ||
-          lower.contains('return') ||
-          lower.contains('valid') ||
-          lower.contains('until') ||
-          lower.contains('due')) {
-        continue;
-      }
+      if (_notPurchaseDate.hasMatch(text.toLowerCase())) continue;
       for (final m in _isoDate.allMatches(text)) {
-        final d = DateTime.tryParse(m.group(0)!);
-        if (d != null) candidates.add(ParsedReceiptDate(date: d));
-      }
-      for (final m in _numericDate.allMatches(text)) {
         candidates.add(ReceiptDateParser.parse(m.group(1)!));
       }
-      for (final m in _writtenDate.allMatches(text)) {
+      // Year-first dates are already taken; don't re-read their tail.
+      final rest = text.replaceAll(_isoDate, ' ');
+      for (final m in _numericDate.allMatches(rest)) {
+        candidates.add(ReceiptDateParser.parse(m.group(1)!));
+      }
+      for (final m in _writtenDate.allMatches(rest)) {
         candidates.add(
           ReceiptDateParser.parse('${m.group(1)} ${m.group(2)} ${m.group(3)}'),
+        );
+      }
+      for (final m in _writtenDateMonthFirst.allMatches(rest)) {
+        candidates.add(
+          ReceiptDateParser.parse('${m.group(2)} ${m.group(1)} ${m.group(3)}'),
         );
       }
     }
@@ -679,7 +763,7 @@ class ReceiptParser {
     for (var i = 0; i < rows.length; i++) {
       final text = rows[i].text;
       final lower = text.toLowerCase();
-      final amount = trailingAmount(text);
+      final amount = _amountFor(rows, i);
       if (amount == null || amount <= 0) continue;
       int? rank;
       if (strong.any(lower.contains)) {
@@ -687,9 +771,11 @@ class ReceiptParser {
       } else if (RegExp(r'(^|[^a-z])total([^a-z]|$)').hasMatch(lower) &&
           !lower.contains('sub') &&
           !lower.contains('saving') &&
-          !lower.contains('vat') &&
+          (!lower.contains('vat') || RegExp(r'\binc').hasMatch(lower)) &&
           !lower.contains('items') &&
-          !lower.contains('discount')) {
+          !lower.contains('discount') &&
+          !lower.contains('excl') &&
+          !RegExp(r'\bnet\b').hasMatch(lower)) {
         rank = 1;
       } else if (RegExp(
         r'^(card|visa|mastercard|debit|credit|contactless|cash|amex|paid)\b',
@@ -698,7 +784,12 @@ class ReceiptParser {
       } else if (lower.contains('balance')) {
         rank = 3;
       }
-      if (rank != null && rank < bestRank) {
+      if (rank == null) continue;
+      // Two plain "Total" rows: the larger one includes VAT or delivery.
+      final better =
+          rank < bestRank ||
+          (rank == 1 && bestRank == 1 && amount > best!.amount);
+      if (better) {
         best = (amount: amount, index: i);
         bestRank = rank;
       }
@@ -706,23 +797,42 @@ class ReceiptParser {
     return best;
   }
 
-  int? _tax(List<_Row> rows) {
-    for (final row in rows) {
-      final lower = row.text.toLowerCase();
+  int? _tax(List<_Row> rows, int? total) {
+    for (var i = 0; i < rows.length; i++) {
+      final lower = rows[i].text.toLowerCase();
       if (!lower.contains('vat') && !RegExp(r'\btax\b').hasMatch(lower)) {
         continue;
       }
+      // `VAT No.`, `Total excl. VAT`, `Total inc VAT 1,128.00` are not the
+      // VAT amount.
       if (lower.contains('vat no') ||
           lower.contains('vat reg') ||
           lower.contains('vat number') ||
           lower.contains('excl') ||
-          lower.contains('net')) {
+          lower.contains('incl') ||
+          lower.contains('inc ') ||
+          lower.contains('inc.') ||
+          lower.contains('including') ||
+          RegExp(r'\bnet\b').hasMatch(lower)) {
         continue;
       }
-      final amount = trailingAmount(row.text);
-      if (amount != null && amount > 0) return amount;
+      final amount = _amountFor(rows, i);
+      if (amount == null || amount <= 0) continue;
+      if (total != null && amount >= total) continue;
+      return amount;
     }
     return null;
+  }
+
+  /// The row's own amount, or the amount alone on the next row when OCR
+  /// split a tilted `TOTAL ........ 12.99` line in two.
+  int? _amountFor(List<_Row> rows, int i) {
+    final own = trailingAmount(rows[i].text);
+    if (own != null) return own;
+    if (i + 1 >= rows.length) return null;
+    final next = rows[i + 1].text;
+    final amount = trailingAmount(next);
+    return amount != null && _withoutAmount(next).isEmpty ? amount : null;
   }
 
   String? _currency(String all) {
@@ -790,13 +900,18 @@ class ReceiptParser {
   List<ParsedItem> _items(List<_Row> rows, String? shop, int? totalIndex) {
     final end = totalIndex ?? rows.length;
     final items = <ParsedItem>[];
-    // A name printed on its own row, waiting for a `2 @ 0.45  0.90` row.
+    // A name printed on its own row, waiting for a `2 @ 0.45  0.90` row or
+    // for a price OCR placed on the next row.
     _Row? nameRow;
+    // A price alone on its row, waiting for a name OCR placed just below.
+    int? priceRow;
     for (var i = 0; i < end; i++) {
       final row = rows[i];
       final text = row.text.trim();
       final pendingName = nameRow;
+      final pendingPrice = priceRow;
       nameRow = null;
+      priceRow = null;
 
       final qtyOnly = _qtyOnlyRow.firstMatch(text);
       if (qtyOnly != null && !_letters.hasMatch(text) && pendingName != null) {
@@ -839,50 +954,109 @@ class ReceiptParser {
 
       final amount = trailingAmount(text);
       if (amount == null) {
-        final lower = text.toLowerCase();
-        if (_letters.hasMatch(text) &&
-            !_amount.hasMatch(text) &&
-            !_skipWords.any((w) => _containsWord(lower, w))) {
-          nameRow = row;
+        if (_isNameOnly(text)) {
+          if (pendingPrice != null) {
+            // The price sat a little higher than its name (tilted photo).
+            _addItem(items, text, pendingPrice, row.box, shop);
+          } else {
+            nameRow = row;
+          }
         }
         continue;
       }
       if (amount <= 0) continue;
-      var name = _withoutAmount(text);
-      if (!_letters.hasMatch(name)) continue;
-      final lower = name.toLowerCase();
-      if (_skipWords.any((w) => _containsWord(lower, w))) continue;
-      if (_numericDate.hasMatch(name)) continue;
-
-      var quantity = 1;
-      final prefix = _qtyPrefix.firstMatch(name);
-      final suffix = _qtySuffix.firstMatch(name);
-      if (prefix != null) {
-        quantity = int.parse(prefix.group(1)!);
-        name = name.substring(prefix.end);
-      } else if (suffix != null) {
-        quantity = int.parse(suffix.group(1)!);
-        name = name.substring(0, suffix.start);
+      final name = _withoutAmount(text);
+      if (!_letters.hasMatch(name)) {
+        if (pendingName != null) {
+          // The price sat a little lower than its name.
+          _addItem(items, pendingName.text, amount, pendingName.box, shop);
+        } else if (name.isEmpty) {
+          priceRow = amount;
+        }
+        continue;
       }
-      // Unit prices printed mid-line, e.g. `LAMP 2 @ 24.00  48.00`.
-      name = name.replaceAll(RegExp(r'\s+\d+\s*@\s*\d+\.\d{2}$'), '');
-      name = name.replaceAll(RegExp(r'\s{2,}'), ' ').trim();
-      if (name.length < 2) continue;
-      if (shop != null && name.toLowerCase() == shop.toLowerCase()) continue;
-
-      items.add(
-        ParsedItem(
-          name: tidyName(name),
-          rawText: name,
-          quantity: quantity,
-          unitPriceMinor: quantity > 1 ? amount ~/ quantity : amount,
-          lineTotalMinor: amount,
-          category: guessCategory(name, shop: shop),
-          box: row.box,
-        ),
-      );
+      _addItem(items, name, amount, row.box, shop);
     }
     return items;
+  }
+
+  /// A row that could be an item name waiting for its price.
+  static bool _isNameOnly(String text) =>
+      _letters.hasMatch(text) &&
+      !_amount.hasMatch(text) &&
+      !_isSkipped(text.toLowerCase());
+
+  static bool _isSkipped(String lower) =>
+      _skipWords.any((w) => _containsWord(lower, w)) ||
+      _paymentCard.hasMatch(lower.trim());
+
+  void _addItem(
+    List<ParsedItem> items,
+    String raw,
+    int amount,
+    LineBox box,
+    String? shop,
+  ) {
+    var name = raw.trim();
+    if (_isSkipped(name.toLowerCase())) return;
+    if (_numericDate.hasMatch(name)) return;
+
+    var quantity = 1;
+    int? unit;
+    final prefix = _qtyPrefix.firstMatch(name);
+    final suffix = _qtySuffix.firstMatch(name);
+    final midline = _qtyMidline.firstMatch(name);
+    if (prefix != null) {
+      quantity = int.parse(prefix.group(1)!);
+      name = name.substring(prefix.end);
+    } else if (midline != null) {
+      // `LAMP 2 @ 24.00  48.00`
+      quantity = int.parse(midline.group(1)!);
+      unit = _toMinor(midline.group(2)!);
+      name = name.substring(0, midline.start);
+    } else if (suffix != null) {
+      quantity = int.parse(suffix.group(1)!);
+      name = name.substring(0, suffix.start);
+    }
+    name = name.replaceAll(_weighed, '');
+    name = name.replaceAll(RegExp(r'\s{2,}'), ' ').trim();
+    if (name.length < 2 || !_letters.hasMatch(name)) return;
+    if (shop != null && name.toLowerCase() == shop.toLowerCase()) return;
+    if (quantity < 1) quantity = 1;
+
+    items.add(
+      ParsedItem(
+        name: tidyName(name),
+        rawText: raw.trim(),
+        quantity: quantity,
+        unitPriceMinor: unit ?? (quantity > 1 ? amount ~/ quantity : amount),
+        lineTotalMinor: amount,
+        category: guessCategory(name, shop: shop),
+        box: box,
+      ),
+    );
+  }
+
+  /// A deadline from the returns wording: an explicit date, or the
+  /// purchase date plus the stated number of days. Only ever a suggestion.
+  static DateTime? returnDeadlineFrom(String wording, DateTime? purchased) {
+    final written = _writtenDate.firstMatch(wording);
+    if (written != null) {
+      final d = ReceiptDateParser.parse(
+        '${written.group(1)} ${written.group(2)} ${written.group(3)}',
+      ).date;
+      if (d != null) return d;
+    }
+    final numeric = _numericDate.firstMatch(wording);
+    if (numeric != null) {
+      final d = ReceiptDateParser.parse(numeric.group(1)!).date;
+      if (d != null) return d;
+    }
+    final days = _returnDays.firstMatch(wording);
+    if (days != null && purchased != null) {
+      return Dates.addDays(purchased, int.parse(days.group(1)!));
+    }
+    return null;
   }
 
   static bool _containsWord(String haystack, String word) {
@@ -913,13 +1087,20 @@ class ReceiptParser {
         .join(' ');
   }
 
+  static final _wordPatterns = <String, RegExp>{};
+
+  /// Whole words only, plurals allowed: `lamps` is a lamp, but `bookcase`
+  /// is not a `case` and `motorbike` is not an `mot`.
+  static bool _hasWord(String lower, String word) =>
+      (_wordPatterns[word] ??= RegExp(
+        '(^|[^a-z0-9])${RegExp.escape(word)}(s|es)?([^a-z]|\$)',
+      )).hasMatch(lower);
+
   static Category guessCategory(String name, {String? shop}) {
-    final lower = ' ${name.toLowerCase()} ';
+    final lower = name.toLowerCase();
     for (final entry in _categoryWords.entries) {
       for (final word in entry.value) {
-        if (lower.contains(' $word') || lower.contains('$word ')) {
-          return entry.key;
-        }
+        if (_hasWord(lower, word)) return entry.key;
       }
     }
     if (shop != null && _grocers.contains(shop)) return Category.groceries;

@@ -301,8 +301,8 @@ class SignUpView extends GetView<SignInController> {
         const _AuthIntro(
           title: 'Create your account',
           subtitle:
-              'It takes a minute. Your vault stays in sync on this phone and '
-              'the web.',
+              'It takes a minute. Your vault is backed up and stays in sync '
+              'on any phone you sign in on.',
         ),
         EmailPasswordForm(controller: controller, create: true),
         const _AuthError(),
@@ -776,14 +776,19 @@ class _VisibilityToggle extends StatelessWidget {
   final bool shown;
   final VoidCallback onPressed;
 
+  // Out of the focus order, so the keyboard's Next goes from Password to
+  // Confirm password instead of landing on this button and closing the
+  // keyboard. Still tappable, and screen readers reach it by its tooltip.
   @override
-  Widget build(BuildContext context) => IconButton(
-    tooltip: shown ? 'Hide password' : 'Show password',
-    icon: Icon(
-      shown ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-      color: context.palette.muted,
+  Widget build(BuildContext context) => ExcludeFocus(
+    child: IconButton(
+      tooltip: shown ? 'Hide password' : 'Show password',
+      icon: Icon(
+        shown ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+        color: context.palette.muted,
+      ),
+      onPressed: onPressed,
     ),
-    onPressed: onPressed,
   );
 }
 

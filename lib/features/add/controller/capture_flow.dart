@@ -14,7 +14,6 @@ import '../../../core/parsing/receipt_parser.dart';
 import '../../../core/services/capture_service.dart';
 import '../../../core/services/receipt_saver.dart';
 import '../../../core/services/text_recognition_service.dart';
-import '../../../core/utils/dates.dart';
 import '../../../core/widgets/feedback.dart';
 
 /// What happened to the last save, for the Saved page (16).
@@ -191,17 +190,12 @@ class CaptureFlow extends GetxController {
 
   bool get dateAmbiguous => draft.extracted['dateAmbiguous'] == true;
 
+  /// Follows the confirmed purchase date, so correcting the date moves the
+  /// suggestion with it. Handles "within 30 days" and "until 12/11/2026".
   DateTime? get suggestedReturn {
     final wording = draft.returnWording;
     if (wording == null) return null;
-    final days = RegExp(
-      r'(\d{1,3})\s*-?\s*days?',
-      caseSensitive: false,
-    ).firstMatch(wording);
-    if (days != null && draft.purchaseDate != null) {
-      return Dates.addDays(draft.purchaseDate!, int.parse(days.group(1)!));
-    }
-    return null;
+    return ReceiptParser.returnDeadlineFrom(wording, draft.purchaseDate);
   }
 
   // -------------------------------------------------------------- items

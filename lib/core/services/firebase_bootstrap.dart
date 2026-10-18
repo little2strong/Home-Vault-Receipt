@@ -31,10 +31,23 @@ abstract final class FirebaseBootstrap {
 
     if (AppConfig.useEmulators) {
       const host = AppConfig.emulatorHost;
-      await FirebaseAuth.instance.useAuthEmulator(host, 9099);
-      FirebaseFirestore.instance.useFirestoreEmulator(host, 8080);
-      await FirebaseStorage.instance.useStorageEmulator(host, 9199);
-      functions.useFunctionsEmulator(host, 5001);
+      const map = AppConfig.mapEmulatorHost;
+      await FirebaseAuth.instance.useAuthEmulator(
+        host,
+        9099,
+        automaticHostMapping: map,
+      );
+      FirebaseFirestore.instance.useFirestoreEmulator(
+        host,
+        8080,
+        automaticHostMapping: map,
+      );
+      await FirebaseStorage.instance.useStorageEmulator(
+        host,
+        9199,
+        automaticHostMapping: map,
+      );
+      functions.useFunctionsEmulator(host, 5001, automaticHostMapping: map);
     }
 
     await _appCheck();

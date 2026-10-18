@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math' as math;
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 
@@ -22,6 +23,8 @@ class UnreadableDocument implements Exception {
 /// On-device text recognition (ML Kit), so receipt images are never sent to
 /// a scanning service. Keeps every line with its bounding box.
 class TextRecognitionService {
+  static const _maxRenderEdge = 4096.0;
+
   TextRecognizer? _recognizer;
 
   TextRecognizer get _ml =>
@@ -67,8 +70,13 @@ class TextRecognitionService {
     try {
       for (var n = 1; n <= doc.pagesCount; n++) {
         final page = await doc.getPage(n);
+        File? file;
         try {
-          final w = page.width * 2, h = page.height * 2;
+          // Twice the page size reads small print well; a long till roll
+          // is capped so it can't run the phone out of memory.
+          final longest = math.max(page.width, page.height);
+          final scale = math.min(2.0, _maxRenderEdge / longest);
+          final w = page.width * scale, h = page.height * scale;
           final render = await page.render(
             width: w,
             height: h,
@@ -77,7 +85,7 @@ class TextRecognitionService {
             quality: 90,
           );
           if (render == null) continue;
-          final file = File(
+          file = File(
             '${dir.path}/ocr-${DateTime.now().microsecondsSinceEpoch}.jpg',
           )..writeAsBytesSync(render.bytes);
           final result = await _ml.processImage(
@@ -100,8 +108,8 @@ class TextRecognitionService {
               ],
             ),
           );
-          file.deleteSync();
         } finally {
+          if (file != null && file.existsSync()) file.deleteSync();
           await page.close();
         }
       }

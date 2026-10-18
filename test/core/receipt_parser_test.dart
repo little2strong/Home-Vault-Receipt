@@ -165,6 +165,174 @@ TOTAL €2.00
     expect(r.items.single.category, Category.furniture);
   });
 
+  test('reads VAT and the gross total, not "Total inc VAT" or the net', () {
+    final r = parse('''
+WICKES
+03/10/2026
+OAK BOOKCASE 120.00
+FRYING PAN 24.00
+GIFT CARD 25.00
+Net total 140.83
+VAT 28.17
+Total inc VAT 169.00
+CARD 169.00
+See you next time
+''');
+    expect(r.shop, 'Wickes');
+    expect(r.totalMinor, 16900);
+    expect(r.taxMinor, 2817);
+    expect(r.items.map((i) => i.name), [
+      'Oak Bookcase',
+      'Frying Pan',
+      'Gift Card',
+    ]);
+    expect(r.items.first.category, Category.furniture);
+    expect(r.items.last.category, Category.software);
+    expect(r.itemsMatchTotal, isTrue);
+  });
+
+  test('VAT summary lines never take the total as the VAT', () {
+    final r = parse('''
+CURRYS
+12/09/2026
+LAPTOP 600.00
+TOTAL 600.00
+Total incl. VAT 600.00
+VAT TOTAL 100.00
+''');
+    expect(r.totalMinor, 60000);
+    expect(r.taxMinor, 10000);
+  });
+
+  test('fixes common OCR misreads in prices', () {
+    final r = parse('''
+ARGOS
+10/10/2026
+KETTLE 29,99
+TOASTER 1O.99
+TOTAL 4O.98
+''');
+    expect(r.items.map((i) => i.lineTotalMinor), [2999, 1099]);
+    expect(r.totalMinor, 4098);
+    expect(r.itemsMatchTotal, isTrue);
+    expect(ReceiptParser.trailingAmount('CHAIR 1.234,56'), 123456);
+    expect(ReceiptParser.trailingAmount('DESK 12. 99'), 1299);
+    expect(ReceiptParser.trailingAmount('No.12 HOOK 3.50'), 350);
+  });
+
+  test('fixes OCR misreads seen on a phone: B0OKCASE and (@', () {
+    // Text exactly as ML Kit returned it for a tilted IKEA receipt.
+    final r = parse('''
+IKEA
+OAK B0OKCASE 120.00
+Table Lamp 2 (@ 24.00 48.00
+PS5 CONSOLE V12 450.00
+TOTAL 618.00
+''');
+    expect(r.items[0].name, 'Oak Bookcase');
+    expect(r.items[0].category, Category.furniture);
+    expect(r.items[1].name, 'Table Lamp');
+    expect(r.items[1].quantity, 2);
+    expect(r.items[2].name, 'PS5 Console V12');
+  });
+
+  test('pairs names and prices that a tilted photo split onto two rows', () {
+    final doc = OcrDocument([
+      const OcrPage(
+        width: 800,
+        height: 400,
+        lines: [
+          OcrLine('HALFORDS', 20, 10, 200, 40),
+          OcrLine('04/10/2026', 20, 50, 200, 80),
+          // Price lower than its name.
+          OcrLine('ENGINE OIL 5W-30', 20, 100, 300, 130),
+          OcrLine('32.00', 600, 122, 700, 152),
+          // Price higher than its name.
+          OcrLine('18.50', 600, 170, 700, 200),
+          OcrLine('WIPER BLADES', 20, 193, 300, 223),
+          OcrLine('TOTAL', 20, 250, 120, 280),
+          OcrLine('50.50', 600, 272, 700, 302),
+        ],
+      ),
+    ]);
+    final r = parser.parse(doc);
+    expect(r.shop, 'Halfords');
+    expect(r.items.map((i) => i.name), ['Engine Oil 5W-30', 'Wiper Blades']);
+    expect(r.items.map((i) => i.lineTotalMinor), [3200, 1850]);
+    expect(r.items.every((i) => i.category == Category.car), isTrue);
+    expect(r.totalMinor, 5050);
+    expect(r.itemsMatchTotal, isTrue);
+  });
+
+  test('reads mid-line quantities and weighed goods', () {
+    final r = parse('''
+DUNELM
+01/10/2026
+TABLE LAMP 2 @ 24.00 48.00
+BANANAS 0.856 kg @ £0.68/kg 0.58
+TOTAL 48.58
+''');
+    final lamp = r.items.first;
+    expect(lamp.name, 'Table Lamp');
+    expect(lamp.quantity, 2);
+    expect(lamp.unitPriceMinor, 2400);
+    expect(lamp.lineTotalMinor, 4800);
+    expect(r.items.last.name, 'Bananas');
+    expect(r.items.last.lineTotalMinor, 58);
+  });
+
+  test('keeps card products but drops card payment lines', () {
+    final r = parse('''
+JOE'S CAMERAS
+01/10/2026
+SD CARD 64GB 9.99
+DEBIT CARD
+CARD 9.99
+TOTAL 9.99
+''');
+    expect(r.items.single.name, 'SD Card 64GB');
+  });
+
+  test('reads year-first, month-first and "Express" store dates', () {
+    expect(parse('SHOP\n2026/09/12\nTOTAL 1.00').purchaseDate,
+        DateTime(2026, 9, 12));
+    expect(parse('SHOP\nOrder date: Oct 1, 2026\nTOTAL 1.00').purchaseDate,
+        DateTime(2026, 10, 1));
+    expect(parse('TESCO EXPRESS 06/10/2026\nTOTAL 1.00').purchaseDate,
+        DateTime(2026, 10, 6));
+    // Impossible dates are not read as dates.
+    expect(parse('SHOP\n2026-02-30\nTOTAL 1.00').purchaseDate, isNull);
+  });
+
+  test('does not take everyday words in the body as the shop', () {
+    final r = parse('''
+Joe's Hardware
+01/10/2026
+BRAMLEY APPLES 1.20
+WALKING BOOTS 45.00
+TOTAL 46.20
+See you next time
+''');
+    expect(r.shop, "Joe's Hardware");
+  });
+
+  test('suggests return deadlines from days or an explicit date', () {
+    final bought = DateTime(2026, 10, 1);
+    expect(
+      ReceiptParser.returnDeadlineFrom('Return within 28 days', bought),
+      DateTime(2026, 10, 29),
+    );
+    expect(
+      ReceiptParser.returnDeadlineFrom(
+        'Returns accepted until 12/11/2026',
+        bought,
+      ),
+      DateTime(2026, 11, 12),
+    );
+    expect(ReceiptParser.returnDeadlineFrom('Return within 28 days', null),
+        isNull);
+  });
+
   test('trailingAmount handles VAT codes, thousands and negatives', () {
     expect(ReceiptParser.trailingAmount('SOFA 1,299.00 A'), 129900);
     expect(ReceiptParser.trailingAmount('Saving 5.00-'), -500);

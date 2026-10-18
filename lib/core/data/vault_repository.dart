@@ -93,8 +93,33 @@ class VaultRepository {
 
   // ------------------------------------------------------------ profile
 
+  Future<void>? _ensuring;
+
   /// Creates the profile on first sign-in if the Function has not yet.
+  ///
+  /// Calls run one after another: on sign-up the device sync (no name yet)
+  /// and the sign-up screen (with the name) both call this at once, and two
+  /// "doesn't exist yet" creates would overwrite each other's name.
   Future<void> ensureProfile({
+    String? displayName,
+    String? email,
+    String? timezone,
+  }) {
+    final previous = _ensuring ?? Future<void>.value();
+    final next = previous
+        .catchError((Object _) {})
+        .then(
+          (_) => _ensureProfile(
+            displayName: displayName,
+            email: email,
+            timezone: timezone,
+          ),
+        );
+    _ensuring = next;
+    return next;
+  }
+
+  Future<void> _ensureProfile({
     String? displayName,
     String? email,
     String? timezone,

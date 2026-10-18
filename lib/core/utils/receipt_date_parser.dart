@@ -28,12 +28,25 @@ abstract final class ReceiptDateParser {
     r'^(\d{1,2})[/\-.](\d{1,2})[/\-.](\d{2}|\d{4})$',
   );
   static final _written = RegExp(r'^(\d{1,2})\s+([A-Za-z]+)\.?\s+(\d{4})$');
+  static final _yearFirst = RegExp(r'^(\d{4})[/\-.](\d{1,2})[/\-.](\d{1,2})$');
 
   static ParsedReceiptDate parse(
     String raw, {
     DateOrder order = DateOrder.dayFirst,
   }) {
     final text = raw.trim();
+
+    // `2026-09-12` and `2026/09/12` are never ambiguous.
+    final yearFirst = _yearFirst.firstMatch(text);
+    if (yearFirst != null) {
+      return ParsedReceiptDate(
+        date: _valid(
+          int.parse(yearFirst.group(1)!),
+          int.parse(yearFirst.group(2)!),
+          int.parse(yearFirst.group(3)!),
+        ),
+      );
+    }
 
     final written = _written.firstMatch(text);
     if (written != null) {

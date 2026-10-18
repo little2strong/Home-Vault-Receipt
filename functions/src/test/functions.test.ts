@@ -286,4 +286,11 @@ describe("account deletion", () => {
     const [files] = await bucket().getFiles({ prefix: `users/${UID}/` });
     assert.equal(files.length, 0);
   });
+
+  it("does not recreate spending stats for a deleted account", async () => {
+    await clearFirestore();
+    // Item and receipt triggers still fire after the profile is gone.
+    await recomputeStats(UID);
+    assert.equal((await db.doc(`users/${UID}/stats/spending`).get()).exists, false);
+  });
 });

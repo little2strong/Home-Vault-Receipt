@@ -16,13 +16,15 @@ service firebase.storage {
       allow read: if isOwner(uid);
     }
 
-    // One stored original per receipt. Owner-only; the saveReceipt Function
-    // is what freezes the record in Firestore after upload.
+    // One stored original per receipt; frozen once the receipt is saved, so
+    // the evidence can't be swapped afterwards. The first deploy of this
+    // rule asks to let Storage read Firestore — answer yes, or uploads fail.
     match /users/{uid}/receipts/{receiptId}/{file} {
       allow create, update: if isOwner(uid)
         && file.matches('original-[0-9]+[.](jpg|jpeg|pdf)')
         && request.resource.size < 50 * 1024 * 1024
-        && request.resource.contentType.matches('image/jpeg|image/jpg|application/pdf');
+        && request.resource.contentType.matches('image/jpeg|image/jpg|application/pdf')
+        && !firestore.exists(/databases/(default)/documents/users/$(uid)/receipts/$(receiptId));
     }
 
     // Item photos (compressed on the phone). Thumbnails are server-made.

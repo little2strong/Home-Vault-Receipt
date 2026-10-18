@@ -106,6 +106,9 @@ export async function recomputeStats(uid: string) {
     db.collection(`${userPath(uid)}/receipts`).get(),
     db.collection(`${userPath(uid)}/items`).where("receiptId", "!=", null).get(),
   ]);
+  // Account deleted: the item and receipt triggers that follow must not
+  // leave a fresh stats document behind.
+  if (!profile.exists) return;
   const zone = (profile.data()?.timezone as string | undefined) ?? "Europe/London";
   const today = DateTime.now().setZone(zone).toISODate() ?? DateTime.utc().toISODate()!;
   const stats = computeStats(

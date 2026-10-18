@@ -106,8 +106,8 @@ class ReceiptSaver extends GetxService {
 
     try {
       if (!connectivity.online.value) throw const ConnectionFailure();
-      final paths = await _uploadOriginals(uid, draft);
-      final result = await repo.saveReceipt(_payload(draft, paths));
+      final originals = await _uploadOriginals(uid, draft);
+      final result = await repo.saveReceipt(_payload(draft, originals));
       if (draft.returnDeadline != null) {
         await repo.setReturnDeadline(
           receiptId: result.receiptId,
@@ -161,16 +161,24 @@ class ReceiptSaver extends GetxService {
   }
 
   /// One stored original per receipt. Paths are fixed by the receipt id, so
-  /// a retry overwrites instead of adding copies.
-  Future<List<String>> _uploadOriginals(String uid, ReceiptDraft draft) async {
-    final paths = <String>[];
+  /// a retry overwrites instead of adding copies. A page whose file is gone
+  /// from the phone (and never uploaded) is left out: listing it would make
+  /// `saveReceipt` wait forever for an upload that can't happen.
+  Future<List<({String path, String type})>> _uploadOriginals(
+    String uid,
+    ReceiptDraft draft,
+  ) async {
+    final originals = <({String path, String type})>[];
     for (var n = 0; n < draft.pages.length; n++) {
       final page = draft.pages[n];
       final path = Paths.original(uid, draft.id, n + 1, page.extension);
-      paths.add(path);
-      if (draft.uploadedPaths.contains(path)) continue;
+      if (draft.uploadedPaths.contains(path)) {
+        originals.add((path: path, type: page.contentType));
+        continue;
+      }
       final file = File(page.localPath);
       if (!file.existsSync()) continue;
+      originals.add((path: path, type: page.contentType));
       var bytes = await file.readAsBytes();
       if (!page.isPdf) bytes = await ImageTools.stripGps(bytes);
       await repo.files.put(
@@ -182,10 +190,13 @@ class ReceiptSaver extends GetxService {
       draft.uploadedPaths.add(path);
       await drafts.save(uid, draft);
     }
-    return paths;
+    return originals;
   }
 
-  Map<String, dynamic> _payload(ReceiptDraft d, List<String> paths) => {
+  Map<String, dynamic> _payload(
+    ReceiptDraft d,
+    List<({String path, String type})> originals,
+  ) => {
     'saveKey': d.saveKey,
     'receiptId': d.id,
     'receipt': {
@@ -200,8 +211,8 @@ class ReceiptSaver extends GetxService {
           ? null
           : d.orderNumber!.trim(),
       'source': d.source.name,
-      'originalPaths': paths,
-      'originalTypes': [for (final p in d.pages) p.contentType],
+      'originalPaths': [for (final o in originals) o.path],
+      'originalTypes': [for (final o in originals) o.type],
       'checksum': d.checksum,
       'ocrText': d.ocrText,
       'returnWording': d.returnWording,

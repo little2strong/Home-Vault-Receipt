@@ -16,6 +16,12 @@ abstract final class AppConfig {
     defaultValue: 'localhost',
   );
 
+  /// The Firebase plugins rewrite `localhost` and `127.0.0.1` to
+  /// `10.0.2.2` on Android, which only works inside the Android emulator.
+  /// Passing EMULATOR_HOST explicitly (e.g. `127.0.0.1` for a phone on
+  /// `adb reverse`, or the PC's LAN address) turns that rewrite off.
+  static const mapEmulatorHost = !bool.hasEnvironment('EMULATOR_HOST');
+
   /// Google OAuth web client id. Firebase accepts Google ID tokens issued
   /// for this client.
   static const googleServerClientId = String.fromEnvironment(

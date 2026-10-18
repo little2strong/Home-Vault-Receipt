@@ -28,7 +28,13 @@ flutter run --dart-define=USE_EMULATORS=true         # app against local emulato
 ```
 
 Running against the emulators from an Android emulator also needs
-`--dart-define=EMULATOR_HOST=10.0.2.2`.
+`--dart-define=EMULATOR_HOST=10.0.2.2`. From a phone on USB, forward the
+ports and use `127.0.0.1` (debug builds allow plain HTTP to these hosts):
+
+```bash
+for p in 9099 8080 9199 5001; do adb reverse tcp:$p tcp:$p; done
+flutter run --dart-define=USE_EMULATORS=true --dart-define=EMULATOR_HOST=127.0.0.1
+```
 
 Firebase CLI emulators need **Java 21 or newer** (`java -version`).
 
