@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../core/data/vault_store.dart';
@@ -160,7 +159,6 @@ class ProductsController extends GetxController {
   ProductsController(this.store);
 
   final VaultStore store;
-  final search = TextEditingController();
   final query = ''.obs;
   final filters = const ProductFilters().obs;
   final sort = ProductSort.newest.obs;
@@ -226,11 +224,5 @@ class ProductsController extends GetxController {
   void showFor(ProductFilters f) {
     filters.value = f;
     quick.value = 'all';
-  }
-
-  @override
-  void onClose() {
-    search.dispose();
-    super.onClose();
   }
 }

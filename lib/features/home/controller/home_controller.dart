@@ -35,6 +35,7 @@ class HomeController extends GetxController {
     super.onReady();
     refreshDrafts();
     ever(store.user, (_) => refreshDrafts());
+    ever(saver.draftsChanged, (_) => refreshDrafts());
   }
 
   Future<void> refreshDrafts() async =>

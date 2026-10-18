@@ -319,30 +319,46 @@ class DetailRow extends StatelessWidget {
           horizontal: AppSizes.md,
           vertical: 15,
         ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Flexible(
-              flex: value.isEmpty ? 10 : 4,
-              child: Text(label, style: t.bodyLarge?.copyWith(color: p.muted)),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              flex: value.isEmpty ? 1 : 6,
-              child: Text(
-                value,
-                textAlign: TextAlign.right,
-                style: t.bodyLarge?.copyWith(
-                  fontWeight: muted ? FontWeight.w400 : FontWeight.w700,
-                  color: muted ? p.muted : (valueColor ?? p.ink),
-                ),
-              ),
-            ),
-            if (onTap != null) ...[
-              const SizedBox(width: 6),
-              Icon(Icons.chevron_right_rounded, size: 20, color: p.muted),
-            ],
-          ],
+        // The label keeps its natural width (up to half the row) and the
+        // value takes the rest, so short labels never wrap and the chevron
+        // always sits at the right edge.
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final labelText = Text(
+              label,
+              style: t.bodyLarge?.copyWith(color: p.muted),
+            );
+            return Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (value.isEmpty)
+                  Expanded(child: labelText)
+                else ...[
+                  ConstrainedBox(
+                    constraints: BoxConstraints(
+                      maxWidth: constraints.maxWidth / 2,
+                    ),
+                    child: labelText,
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Text(
+                      value,
+                      textAlign: TextAlign.right,
+                      style: t.bodyLarge?.copyWith(
+                        fontWeight: muted ? FontWeight.w400 : FontWeight.w700,
+                        color: muted ? p.muted : (valueColor ?? p.ink),
+                      ),
+                    ),
+                  ),
+                ],
+                if (onTap != null) ...[
+                  const SizedBox(width: 6),
+                  Icon(Icons.chevron_right_rounded, size: 20, color: p.muted),
+                ],
+              ],
+            );
+          },
         ),
       ),
     );

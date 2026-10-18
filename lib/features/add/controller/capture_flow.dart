@@ -297,7 +297,10 @@ class CaptureFlow extends GetxController {
     Get.until((r) => r.settings.name == Routes.shell || r.isFirst);
   }
 
+  /// Removes this flow. A newer flow (e.g. "Scan another") is left alone.
   void end() {
-    if (active) Get.delete<CaptureFlow>(force: true);
+    if (active && identical(Get.find<CaptureFlow>(), this)) {
+      Get.delete<CaptureFlow>(force: true);
+    }
   }
 }

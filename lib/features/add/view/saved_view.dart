@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -57,14 +59,14 @@ class SavedController extends GetxController {
     super.onClose();
   }
 
-  void viewReceipt() {
+  Future<void> viewReceipt() async {
     final id = outcome.result?.receiptId;
-    Get.offAllNamed(Routes.shell);
-    if (id != null) Get.toNamed(Routes.receipt(id));
+    await _toShell();
+    if (id != null) unawaited(Get.toNamed(Routes.receipt(id)));
   }
 
   Future<void> scanAnother() async {
-    await Get.offAllNamed(Routes.shell);
+    await _toShell();
     final flow = CaptureFlow.begin(ReceiptSource.camera);
     if (Get.find<CaptureService>().hasDocumentScanner) {
       await flow.fromScanner();
@@ -73,9 +75,20 @@ class SavedController extends GetxController {
     }
   }
 
-  void open(String route) {
-    Get.offAllNamed(Routes.shell);
-    Get.toNamed(route);
+  Future<void> open(String route) async {
+    await _toShell();
+    unawaited(Get.toNamed(route));
+  }
+
+  /// Replaces everything with the shell and waits for its first frame.
+  ///
+  /// GetX links a controller to the route installed last when it is
+  /// created. Pushing a page in the same frame would link the shell's
+  /// controllers to that page, and closing it would delete them. The
+  /// `offAllNamed` future itself only completes when the shell is popped.
+  Future<void> _toShell() async {
+    unawaited(Get.offAllNamed(Routes.shell));
+    await WidgetsBinding.instance.endOfFrame;
   }
 }
 

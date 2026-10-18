@@ -35,6 +35,10 @@ class ReceiptSaver extends GetxService {
 
   /// Confirmed drafts not yet saved on the server.
   final pending = <ReceiptDraft>[].obs;
+
+  /// Bumped when a draft is kept or thrown away, so Home can refresh its
+  /// "Carry on" card.
+  final draftsChanged = 0.obs;
   final _inFlight = <String, Future<SaveResult>>{};
   Worker? _onlineWorker;
   Worker? _userWorker;
@@ -72,6 +76,7 @@ class ReceiptSaver extends GetxService {
   Future<void> keep(ReceiptDraft draft) async {
     final uid = store.uid;
     if (uid != null) await drafts.save(uid, draft);
+    draftsChanged.value++;
   }
 
   Future<void> discard(ReceiptDraft draft) async {
@@ -79,6 +84,7 @@ class ReceiptSaver extends GetxService {
     if (uid != null) await drafts.remove(uid, draft.id);
     await capture.deleteDraftFiles(draft.id);
     pending.removeWhere((d) => d.id == draft.id);
+    draftsChanged.value++;
   }
 
   Future<void> retryPending() async {
@@ -93,9 +99,12 @@ class ReceiptSaver extends GetxService {
 
   /// Returns once the server has confirmed. Throws [ConnectionFailure] when
   /// offline (the draft is then kept as "Waiting for connection").
-  Future<SaveResult> save(ReceiptDraft draft) => _inFlight[draft.id] ??= _save(
-    draft,
-  ).whenComplete(() => _inFlight.remove(draft.id));
+  Future<SaveResult> save(ReceiptDraft draft) =>
+      _inFlight[draft.id] ??= _save(draft).whenComplete(() {
+        // A block body: returning the removed Future (this one) from the
+        // callback would make whenComplete wait on itself forever.
+        _inFlight.remove(draft.id);
+      });
 
   Future<SaveResult> _save(ReceiptDraft draft) async {
     final uid = store.uid;
@@ -121,6 +130,7 @@ class ReceiptSaver extends GetxService {
       await drafts.remove(uid, draft.id);
       await capture.deleteDraftFiles(draft.id);
       pending.removeWhere((d) => d.id == draft.id);
+      draftsChanged.value++;
       return result;
     } on ConnectionFailure {
       await _markPending(uid, draft, DraftState.waiting, null);

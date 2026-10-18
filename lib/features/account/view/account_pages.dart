@@ -808,7 +808,11 @@ class SettingsView extends StatelessWidget {
                   'Keep photo location',
                   style: TextStyle(fontSize: 17),
                 ),
-                subtitle: const Text('Off: location is removed before upload.'),
+                subtitle: Text(
+                  profile.keepPhotoLocation
+                      ? 'On: photos keep where they were taken.'
+                      : 'Off: location is removed before upload.',
+                ),
                 value: profile.keepPhotoLocation,
                 onChanged: (v) => set('keepPhotoLocation', v),
               ),

@@ -61,18 +61,7 @@ class ProductsView extends GetView<ProductsController> {
             const SizedBox(height: 16),
             Row(
               children: [
-                Expanded(
-                  child: TextField(
-                    controller: controller.search,
-                    onChanged: (v) => controller.query.value = v,
-                    textInputAction: TextInputAction.search,
-                    style: const TextStyle(fontSize: 17),
-                    decoration: InputDecoration(
-                      hintText: 'Search products',
-                      prefixIcon: Icon(Icons.search_rounded, color: p.muted),
-                    ),
-                  ),
-                ),
+                Expanded(child: _SearchField(controller)),
                 const SizedBox(width: 12),
                 Badge(
                   isLabelVisible: f.activeCount > 0,
@@ -196,6 +185,43 @@ class ProductsView extends GetView<ProductsController> {
 }
 
 /// 20 Filters sheet: room, purpose, type, warranty, date bought.
+/// Owns its text controller. GetX deletes [ProductsController] when the
+/// shell route is disposed, which can happen a frame before this field is
+/// unmounted (sign-out, account deletion); a controller-owned
+/// TextEditingController would then be used after dispose.
+class _SearchField extends StatefulWidget {
+  const _SearchField(this.products);
+
+  final ProductsController products;
+
+  @override
+  State<_SearchField> createState() => _SearchFieldState();
+}
+
+class _SearchFieldState extends State<_SearchField> {
+  late final _text = TextEditingController(text: widget.products.query.value);
+
+  @override
+  void dispose() {
+    _text.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return TextField(
+      controller: _text,
+      onChanged: (v) => widget.products.query.value = v,
+      textInputAction: TextInputAction.search,
+      style: const TextStyle(fontSize: 17),
+      decoration: InputDecoration(
+        hintText: 'Search products',
+        prefixIcon: Icon(Icons.search_rounded, color: context.palette.muted),
+      ),
+    );
+  }
+}
+
 class FiltersSheet extends StatefulWidget {
   const FiltersSheet({super.key, required this.controller});
 

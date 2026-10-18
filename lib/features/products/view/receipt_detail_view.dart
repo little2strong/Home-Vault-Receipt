@@ -113,9 +113,19 @@ class ReceiptDetailController extends GetxController {
       destructive: true,
     );
     if (!ok) return;
+    // Pages of this receipt's items (opened before or after it) go too,
+    // or the user lands on "This item is no longer here".
+    final pages = [
+      Routes.receipt(r.id),
+      for (final i in store.itemsOnReceipt(r.id)) Routes.item(i.id),
+    ];
     try {
       await repo.deleteReceipt(r.id);
-      Get.back<void>();
+      Get.until((route) {
+        final name = route.settings.name ?? '';
+        final gone = pages.any((p) => name == p || name.startsWith('$p/'));
+        return !gone || route.isFirst;
+      });
       Toast.show('Receipt deleted');
     } catch (e) {
       Toast.show('$e');
