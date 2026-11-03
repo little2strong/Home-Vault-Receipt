@@ -188,7 +188,7 @@ class AuthRepository {
     'account-exists-with-different-credential' =>
       'You already have an account with this email. Sign in the way you did before.',
     'operation-not-allowed' =>
-      'This sign-in method is not switched on yet for Home Vault.',
+      'This sign-in method is not switched on yet for Box of Receipts.',
     _ => e.message ?? 'Sign-in did not work. Try again.',
   };
 }

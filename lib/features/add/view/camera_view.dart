@@ -53,7 +53,7 @@ class CameraCaptureController extends GetxController
       ready.value = true;
     } on CameraException catch (e) {
       error.value = e.code == 'CameraAccessDenied'
-          ? 'Home Vault needs the camera to scan receipts. Turn it on in '
+          ? 'Box of Receipts needs the camera to scan receipts. Turn it on in '
                 'Settings, or choose a photo instead.'
           : 'The camera could not start.';
     } catch (_) {

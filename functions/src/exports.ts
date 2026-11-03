@@ -137,7 +137,7 @@ function pdfToBuffer(doc: PDFKit.PDFDocument): Promise<Buffer> {
 }
 
 export async function buildPdf(v: Vault, kind: "inventory" | "products", f: Filters): Promise<Buffer> {
-  const doc = new PDFDocument({ size: "A4", margin: 48, info: { Title: "Home Vault", Author: "Home Vault" } });
+  const doc = new PDFDocument({ size: "A4", margin: 48, info: { Title: "Box of Receipts", Author: "Box of Receipts" } });
   const ink = "#183A34", muted = "#5D6C65", line = "#DFE5DE";
   const name = (v.profile.displayName as string | undefined) ?? "";
   const today = new Date().toISOString().slice(0, 10);
@@ -147,7 +147,7 @@ export async function buildPdf(v: Vault, kind: "inventory" | "products", f: Filt
     .text([name, `Created ${medium(today)}`].filter(Boolean).join(" · "));
   doc.moveDown(0.4).fontSize(9).text(
     "Prices are what was paid, not replacement value. Estimates are marked. " +
-    "Home Vault records what the owner confirmed; the insurer decides what is covered.",
+    "Box of Receipts records what the owner confirmed; the insurer decides what is covered.",
   );
   doc.moveDown(1);
 
@@ -259,10 +259,10 @@ async function archive(uid: string, v: Vault, f: Filters): Promise<Buffer> {
     rooms: v.rooms, cars: v.cars, warranties: v.warranties, returns: v.returns,
   };
   return buildZip([
-    { name: "home-vault-data.json", data: JSON.stringify(data, (_k, val) => (val instanceof Timestamp ? val.toDate().toISOString() : val), 2) },
+    { name: "box-of-receipts-data.json", data: JSON.stringify(data, (_k, val) => (val instanceof Timestamp ? val.toDate().toISOString() : val), 2) },
     { name: "products.csv", data: productsCsv(v, f) },
     { name: "home-inventory.csv", data: inventoryCsv(v, f) },
-    { name: "README.txt", data: "Your Home Vault data. Location has been removed from photos.\r\n" },
+    { name: "README.txt", data: "Your Box of Receipts data. Location has been removed from photos.\r\n" },
   ], files);
 }
 

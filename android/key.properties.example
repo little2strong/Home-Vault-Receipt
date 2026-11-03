@@ -1,0 +1,7 @@
+# Copy this file to key.properties and supply your local upload key details.
+# Keep key.properties and the keystore out of source control.
+# Use forward slashes in Windows paths. Relative paths resolve from android/app.
+storeFile=C:/Users/YOUR_USERNAME/home-vault-upload.jks
+storePassword=
+keyAlias=upload
+keyPassword=

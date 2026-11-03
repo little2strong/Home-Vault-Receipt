@@ -1,4 +1,4 @@
-# Home Vault
+# Box of Receipts
 
 Receipts and a room-by-room home inventory: a Flutter app for Android and
 iOS only, running entirely on Firebase. Built to the
@@ -170,3 +170,10 @@ Text recognition runs on the phone. Photos lose their GPS location before
 upload unless the user turns on "Keep photo location", and always in
 exports. Crash reports carry no receipt text, images or tokens. Data is
 encrypted in transit and at rest by Google; it is not end-to-end encrypted.
+
+## Publishing to Google Play
+
+Follow [the Android release checklist](docs/RELEASING.md) for upload key
+setup, remaining publication blockers, validation and app bundle creation.
+Release builds require a local `android/key.properties`; copy
+`android/key.properties.example` and fill it in before building.

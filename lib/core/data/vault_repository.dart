@@ -91,7 +91,7 @@ class VaultRepository {
       // deployed, and the raw message is just "NOT_FOUND".
       if (e.code == 'not-found') {
         throw const VaultFailure(
-          "Home Vault's server isn't ready yet. Your receipt is kept on this "
+          "The Box of Receipts server isn't ready yet. Your receipt is kept on this "
           'phone. Try again later.',
         );
       }

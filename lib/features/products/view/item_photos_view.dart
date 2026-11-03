@@ -123,7 +123,8 @@ class ItemPhotosController extends GetxController {
         final ok = await Pickers.confirm(
           context,
           title: 'Delete this photo?',
-          message: 'It is removed from Home Vault and its record is deleted.',
+          message:
+              'It is removed from Box of Receipts and its record is deleted.',
           action: 'Delete',
           destructive: true,
         );

@@ -108,7 +108,7 @@ class EditWarrantyController extends GetxController {
       Event(
         title: 'Warranty ends: ${item?.name ?? 'item'}',
         description:
-            'Home Vault reminder. Check the terms with the shop or maker.',
+            'Box of Receipts reminder. Check the terms with the shop or maker.',
         startDate: e,
         endDate: e.add(const Duration(hours: 1)),
         allDay: true,

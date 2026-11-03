@@ -205,7 +205,7 @@ class RoomsController extends GetxController {
         title: 'Remove ${room.name}?',
         message: n == 0
             ? 'The room and its walkthrough video are removed.'
-            : 'Its ${Formatters.count(n, 'item')} stay in Home Vault with no room set. '
+            : 'Its ${Formatters.count(n, 'item')} stay in Box of Receipts with no room set. '
                   'Its walkthrough video is deleted.',
         action: 'Remove',
         destructive: true,

@@ -98,7 +98,7 @@ class CaptureFlow extends GetxController {
       await Get.toNamed(Routes.pages);
     } catch (e) {
       Toast.show(
-        "We couldn't open your photos. Check Home Vault can use them.",
+        "We couldn't open your photos. Check Box of Receipts can use them.",
       );
       _endIfEmpty();
     }

@@ -592,7 +592,7 @@ class ExportReadyView extends StatelessWidget {
                 onPressed: () => SharePlus.instance.share(
                   ShareParams(
                     text:
-                        'My ${job.kind.label.toLowerCase()} from Home Vault. '
+                        'My ${job.kind.label.toLowerCase()} from Box of Receipts. '
                         'This link works until ${Formatters.expiry(job.expiresAt!, now)}:\n${job.url}',
                     subject: 'Home inventory',
                   ),
@@ -745,7 +745,7 @@ class SettingsView extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.only(bottom: 12),
               child: InfoNote(
-                'Notifications are off for Home Vault, so reminders cannot reach '
+                'Notifications are off for Box of Receipts, so reminders cannot reach '
                 'you. Tap to turn them on.',
                 icon: Icons.notifications_off_outlined,
                 warning: true,
@@ -753,7 +753,7 @@ class SettingsView extends StatelessWidget {
                   final ok = await notifications.requestPermission();
                   if (!ok) {
                     Toast.show(
-                      'Open your phone Settings › Notifications › Home Vault to allow them.',
+                      'Open your phone Settings › Notifications › Box of Receipts to allow them.',
                     );
                   }
                 },
@@ -890,7 +890,10 @@ class SettingsView extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           Center(
-            child: Text('Home Vault 1.0.0', style: TextStyle(color: p.muted)),
+            child: Text(
+              'Box of Receipts 1.0.0',
+              style: TextStyle(color: p.muted),
+            ),
           ),
         ],
       );
@@ -1152,7 +1155,7 @@ class HelpView extends StatelessWidget {
       ),
       (
         'Are my items insured or protected?',
-        'Home Vault keeps your records and photos. Your insurer decides what is '
+        'Box of Receipts keeps your records and photos. Your insurer decides what is '
             'covered and what evidence it accepts.',
       ),
       (
@@ -1189,7 +1192,7 @@ class HelpView extends StatelessWidget {
           icon: Icons.mail_outline_rounded,
           onPressed: () => launchUrl(
             Uri.parse(
-              'mailto:support@homevault.example?subject=Home%20Vault%20help',
+              'mailto:support@homevault.example?subject=Box%20of%20Receipts%20help',
             ),
           ),
         ),
@@ -1255,7 +1258,7 @@ class LegalView extends StatelessWidget {
 
   static const _terms = [
     (
-      'What Home Vault does',
+      'What Box of Receipts does',
       'It stores records you confirm. It never says an item is verified, '
           'protected or insured; your insurer decides what it accepts.',
     ),

@@ -99,7 +99,7 @@ class OriginalViewerController extends GetxController {
     );
   }
 
-  /// A copy the user keeps; Home Vault never shares it by itself.
+  /// A copy the user keeps; Box of Receipts never shares it by itself.
   Future<void> saveCopy() async {
     final r = receipt;
     if (r == null || pages.isEmpty) return;

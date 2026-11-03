@@ -11,7 +11,7 @@ class BrandMark extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Semantics(
-      label: 'Home Vault',
+      label: 'Box of Receipts',
       image: true,
       child: Container(
         width: size,
@@ -75,7 +75,7 @@ class BrandRow extends StatelessWidget {
       const SizedBox(width: 10),
       Flexible(
         child: Text(
-          'Home Vault',
+          'Box of Receipts',
           overflow: TextOverflow.ellipsis,
           style: TextStyle(
             fontSize: 20,

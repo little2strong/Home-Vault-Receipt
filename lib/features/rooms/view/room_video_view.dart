@@ -91,7 +91,8 @@ class RoomVideoController extends GetxController {
       camera = c;
       mode.value = VideoMode.ready;
     } catch (_) {
-      error.value = 'The camera could not start. Check Home Vault can use it.';
+      error.value =
+          'The camera could not start. Check Box of Receipts can use it.';
       mode.value = VideoMode.ready;
     }
   }
@@ -149,7 +150,7 @@ class RoomVideoController extends GetxController {
     final ok = await Pickers.confirm(
       context,
       title: 'Delete this walkthrough?',
-      message: 'The video is removed from Home Vault.',
+      message: 'The video is removed from Box of Receipts.',
       action: 'Delete',
       destructive: true,
     );

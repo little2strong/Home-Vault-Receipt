@@ -53,7 +53,7 @@ class SplashView extends GetView<SplashController> {
                     ),
                     const SizedBox(height: 20),
                     Text(
-                      'Home Vault',
+                      'Box of Receipts',
                       textAlign: TextAlign.center,
                       style: context.textStyles.headlineMedium?.copyWith(
                         color: Colors.white,
@@ -138,7 +138,7 @@ class WelcomeView extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         Text(
-          'Snap a receipt, check the details, and Home Vault keeps it safe.',
+          'Snap a receipt, check the details, and Box of Receipts keeps it safe.',
           style: t.bodyLarge?.copyWith(
             color: context.palette.muted,
             fontWeight: FontWeight.w400,
@@ -280,7 +280,7 @@ class SignInView extends GetView<SignInController> {
         const SocialSignInButtons(),
         const SizedBox(height: 16),
         _AuthSwitch(
-          prompt: 'New to Home Vault?',
+          prompt: 'New to Box of Receipts?',
           action: 'Create an account',
           onPressed: controller.openSignUp,
         ),
@@ -354,7 +354,7 @@ class _ResetRequest extends GetView<SignInController> {
           icon: Icons.lock_reset_rounded,
           title: 'Forgot your password?',
           subtitle:
-              "Enter the email you use for Home Vault and we'll send you a "
+              "Enter the email you use for Box of Receipts and we'll send you a "
               'link to choose a new one.',
         ),
         Obx(
@@ -415,7 +415,9 @@ class _ResetSent extends GetView<SignInController> {
           child: Text.rich(
             TextSpan(
               children: [
-                const TextSpan(text: "If there's a Home Vault account for "),
+                const TextSpan(
+                  text: "If there's a Box of Receipts account for ",
+                ),
                 TextSpan(
                   text: email,
                   style: TextStyle(color: p.ink, fontWeight: FontWeight.w700),

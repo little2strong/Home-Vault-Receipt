@@ -422,7 +422,7 @@ class _PhotoHeader extends StatelessWidget {
                     photos[controller.page.value.clamp(0, photos.length - 1)];
                 final when = ph.deviceTakenAt ?? ph.serverUploadedAt;
                 final how = ph.source == PhotoSource.camera
-                    ? 'Taken in Home Vault'
+                    ? 'Taken in Box of Receipts'
                     : 'Added from gallery';
                 return Container(
                   padding: const EdgeInsets.symmetric(
