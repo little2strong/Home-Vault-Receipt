@@ -410,39 +410,45 @@ class SectionHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(top: 24, bottom: 10),
-      child: Row(
-        children: [
-          Expanded(
-            child: Semantics(
-              header: true,
-              child: Text(
-                title,
-                style: context.textStyles.titleLarge?.copyWith(
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
-            ),
-          ),
-          if (action != null)
-            Flexible(
-              child: InkWell(
-                onTap: onAction,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  child: Text(
-                    action!,
-                    textAlign: TextAlign.right,
-                    style: TextStyle(
-                      color: context.palette.primary,
-                      fontWeight: FontWeight.w700,
-                      decoration: TextDecoration.underline,
-                      decorationColor: context.palette.primary,
-                    ),
+      child: LayoutBuilder(
+        builder: (context, box) => Row(
+          children: [
+            Expanded(
+              child: Semantics(
+                header: true,
+                child: Text(
+                  title,
+                  style: context.textStyles.titleLarge?.copyWith(
+                    fontWeight: FontWeight.w800,
                   ),
                 ),
               ),
             ),
-        ],
+            // The link takes only the width it needs, so the title keeps the
+            // rest of the row. The cap lets it wrap at very large text sizes.
+            if (action != null)
+              Container(
+                constraints: BoxConstraints(maxWidth: box.maxWidth * 0.45),
+                padding: const EdgeInsets.only(left: 12),
+                child: InkWell(
+                  onTap: onAction,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    child: Text(
+                      action!,
+                      textAlign: TextAlign.right,
+                      style: TextStyle(
+                        color: context.palette.primary,
+                        fontWeight: FontWeight.w700,
+                        decoration: TextDecoration.underline,
+                        decorationColor: context.palette.primary,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }

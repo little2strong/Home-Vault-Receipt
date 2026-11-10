@@ -54,28 +54,34 @@ class WarrantiesView extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: StatTile(
-                    label: 'Within 3 months',
-                    value: '${expiring.length}',
-                    tone: PillTone.amber,
+            IntrinsicHeight(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Expanded(
+                    child: StatTile(
+                      label: 'Within 3 months',
+                      value: '${expiring.length}',
+                      tone: PillTone.amber,
+                    ),
                   ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: StatTile(
-                    label: 'Active',
-                    value: '${active.length}',
-                    tone: PillTone.green,
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: StatTile(
+                      label: 'Active',
+                      value: '${active.length}',
+                      tone: PillTone.green,
+                    ),
                   ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: StatTile(label: 'Expired', value: '${expired.length}'),
-                ),
-              ],
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: StatTile(
+                      label: 'Expired',
+                      value: '${expired.length}',
+                    ),
+                  ),
+                ],
+              ),
             ),
             if (off) ...[
               const SizedBox(height: 14),

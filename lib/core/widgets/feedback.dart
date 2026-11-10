@@ -219,15 +219,7 @@ class SheetFrame extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const SizedBox(height: 10),
-              Container(
-                width: 48,
-                height: 5,
-                decoration: BoxDecoration(
-                  color: context.palette.outline,
-                  borderRadius: BorderRadius.circular(3),
-                ),
-              ),
+              // The drag handle comes from bottomSheetTheme.showDragHandle.
               Padding(
                 padding: const EdgeInsets.fromLTRB(
                   AppSizes.pagePadding,
