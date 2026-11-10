@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -554,67 +553,10 @@ class SocialSignInButtons extends GetView<SignInController> {
 
   @override
   Widget build(BuildContext context) {
-    // App Store rule 4.8: Google sign-in on iOS must sit beside
-    // Sign in with Apple.
-    final ios = defaultTargetPlatform == TargetPlatform.iOS;
-    return Obx(() {
-      final busy = controller.busy.value;
-      return Column(
-        children: [
-          if (ios) ...[
-            _AppleButton(loading: busy == 'apple', onPressed: controller.apple),
-            const SizedBox(height: 12),
-          ],
-          _GoogleButton(
-            loading: busy == 'google',
-            onPressed: controller.google,
-          ),
-        ],
-      );
-    });
-  }
-}
-
-/// Follows Apple's button guidelines: black in light mode, white in dark.
-class _AppleButton extends StatelessWidget {
-  const _AppleButton({required this.loading, required this.onPressed});
-
-  final bool loading;
-  final VoidCallback onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    final dark = Theme.of(context).brightness == Brightness.dark;
-    final bg = dark ? Colors.white : Colors.black;
-    final fg = dark ? Colors.black : Colors.white;
-    return SizedBox(
-      width: double.infinity,
-      height: AppSizes.buttonHeight,
-      child: FilledButton(
-        onPressed: loading ? null : onPressed,
-        style: FilledButton.styleFrom(
-          backgroundColor: bg,
-          foregroundColor: fg,
-          disabledBackgroundColor: bg,
-          disabledForegroundColor: fg,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppSizes.buttonRadius),
-          ),
-          textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
-        ),
-        child: loading
-            ? SizedBox.square(
-                dimension: 22,
-                child: CircularProgressIndicator(strokeWidth: 2.4, color: fg),
-              )
-            : const Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.apple, size: 24),
-                  SizedBox(width: 10),
-                  Text('Continue with Apple'),
-                ],
-              ),
+    return Obx(
+      () => _GoogleButton(
+        loading: controller.busy.value == 'google',
+        onPressed: controller.google,
       ),
     );
   }

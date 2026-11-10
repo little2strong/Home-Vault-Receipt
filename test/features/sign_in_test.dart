@@ -112,23 +112,13 @@ void main() {
     });
 
     testWidgets(
-      'offers Sign in with Apple beside Google on iOS (App Store 4.8)',
-      (t) async {
-        await pumpAuth(t, const SignInView());
-        expect(find.text('Continue with Apple'), findsOneWidget);
-        expect(find.text('Continue with Google'), findsOneWidget);
-      },
-      variant: TargetPlatformVariant.only(TargetPlatform.iOS),
-    );
-
-    testWidgets(
-      'shows only Google on Android',
+      'offers Google sign-in, without an Apple button',
       (t) async {
         await pumpAuth(t, const SignInView());
         expect(find.text('Continue with Apple'), findsNothing);
         expect(find.text('Continue with Google'), findsOneWidget);
       },
-      variant: TargetPlatformVariant.only(TargetPlatform.android),
+      variant: TargetPlatformVariant.only(TargetPlatform.iOS),
     );
   });
 }
