@@ -74,7 +74,8 @@ class CameraCaptureController extends GetxController
       ready.value = false;
       camera = null;
       c.dispose();
-    } else if (state == AppLifecycleState.resumed && (_paused || denied.value)) {
+    } else if (state == AppLifecycleState.resumed &&
+        (_paused || denied.value)) {
       // Back from the background, or from Settings after allowing the camera.
       _paused = false;
       denied.value = false;

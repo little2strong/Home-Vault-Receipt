@@ -12,6 +12,7 @@ import '../../../core/data/vault_store.dart';
 import '../../../core/models/enums.dart';
 import '../../../core/models/receipt_draft.dart';
 import '../../../core/models/vault_models.dart';
+import '../../../core/services/app_permissions.dart';
 import '../../../core/services/notification_service.dart';
 import '../../../core/services/receipt_saver.dart';
 import '../../../core/theme/vault_palette.dart';
@@ -752,8 +753,8 @@ class SettingsView extends StatelessWidget {
                 onTap: () async {
                   final ok = await notifications.requestPermission();
                   if (!ok) {
-                    Toast.show(
-                      'Open your phone Settings › Notifications › Box of Receipts to allow them.',
+                    await AppPermissions.explainDenied(
+                      AppPermission.notifications,
                     );
                   }
                 },
