@@ -26,6 +26,15 @@ end
 
 require File.expand_path(File.join('packages', 'flutter_tools', 'bin', 'podhelper'), flutter_root)
 
+# Google's ML Kit pods have no arm64 simulator slice, so on Apple silicon
+# Macs the simulator build fails ("Framework 'Pods_Runner' not found").
+# This helper from google_mlkit_commons relabels the slice per build; device
+# and App Store builds are unaffected.
+require File.expand_path(
+  '.symlinks/plugins/google_mlkit_commons/ios/scripts/apple_silicon_simulator',
+  __dir__,
+)
+
 flutter_ios_podfile_setup
 
 target 'Runner' do
@@ -44,4 +53,6 @@ post_install do |installer|
       config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '15.5'
     end
   end
+
+  mlkit_apple_silicon_simulator_patch(installer)
 end
