@@ -940,7 +940,7 @@ class DeleteAccountController extends GetxController {
     busy.value = true;
     error.value = null;
     try {
-      await auth.reauthenticate(password: password);
+      await auth.reauthenticate(password: password, forDeletion: true);
       await repo.deleteAccount();
       if (Get.isRegistered<ReceiptSaver>()) {
         for (final d in [...Get.find<ReceiptSaver>().pending]) {

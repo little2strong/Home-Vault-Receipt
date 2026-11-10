@@ -11,6 +11,7 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/data/file_store.dart';
 import '../../../core/data/vault_repository.dart';
 import '../../../core/data/vault_store.dart';
+import '../../../core/services/app_permissions.dart';
 import '../../../core/services/firebase_bootstrap.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../core/widgets/buttons.dart';
@@ -30,6 +31,7 @@ class RoomVideoController extends GetxController {
   final seconds = 0.obs;
   final progress = 0.0.obs;
   final error = RxnString();
+  final denied = false.obs;
   CameraController? camera;
   VideoPlayerController? player;
   String? recordedPath;
@@ -89,6 +91,13 @@ class RoomVideoController extends GetxController {
       );
       await c.initialize();
       camera = c;
+      mode.value = VideoMode.ready;
+    } on CameraException catch (e) {
+      denied.value = AppPermissions.deniedBy(e.code) != null;
+      error.value = denied.value
+          ? 'Box of Receipts needs the camera to film this room. Turn it on '
+                'in Settings.'
+          : 'The camera could not start. Check Box of Receipts can use it.';
       mode.value = VideoMode.ready;
     } catch (_) {
       error.value =
@@ -271,10 +280,23 @@ class RoomVideoView extends GetView<RoomVideoController> {
       return Center(
         child: Padding(
           padding: const EdgeInsets.all(32),
-          child: Text(
-            controller.error.value!,
-            textAlign: TextAlign.center,
-            style: const TextStyle(color: Colors.white, fontSize: 17),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                controller.error.value!,
+                textAlign: TextAlign.center,
+                style: const TextStyle(color: Colors.white, fontSize: 17),
+              ),
+              if (controller.denied.value) ...[
+                const SizedBox(height: 20),
+                const VaultButton(
+                  label: 'Open Settings',
+                  expand: false,
+                  onPressed: AppPermissions.openSettings,
+                ),
+              ],
+            ],
           ),
         ),
       );

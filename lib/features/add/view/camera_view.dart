@@ -8,6 +8,7 @@ import 'package:get/get.dart';
 
 import '../../../app/routes/app_routes.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/services/app_permissions.dart';
 import '../../../core/services/capture_service.dart';
 import '../../../core/services/firebase_bootstrap.dart';
 import '../../../core/widgets/buttons.dart';
@@ -21,6 +22,8 @@ class CameraCaptureController extends GetxController
   final torch = false.obs;
   final capturing = false.obs;
   final error = RxnString();
+  final denied = false.obs;
+  bool _paused = false;
   final pageCount = 0.obs;
 
   CaptureFlow get flow => CaptureFlow.to;
@@ -52,7 +55,8 @@ class CameraCaptureController extends GetxController
       camera = c;
       ready.value = true;
     } on CameraException catch (e) {
-      error.value = e.code == 'CameraAccessDenied'
+      denied.value = AppPermissions.deniedBy(e.code) != null;
+      error.value = denied.value
           ? 'Box of Receipts needs the camera to scan receipts. Turn it on in '
                 'Settings, or choose a photo instead.'
           : 'The camera could not start.';
@@ -63,13 +67,18 @@ class CameraCaptureController extends GetxController
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    final c = camera;
-    if (c == null || !c.value.isInitialized) return;
     if (state == AppLifecycleState.inactive) {
+      final c = camera;
+      if (c == null || !c.value.isInitialized) return;
+      _paused = true;
       ready.value = false;
       camera = null;
       c.dispose();
-    } else if (state == AppLifecycleState.resumed) {
+    } else if (state == AppLifecycleState.resumed && (_paused || denied.value)) {
+      // Back from the background, or from Settings after allowing the camera.
+      _paused = false;
+      denied.value = false;
+      error.value = null;
       unawaited(_start());
     }
   }
@@ -207,6 +216,14 @@ class CameraView extends GetView<CameraCaptureController> {
                             ),
                           ),
                           const SizedBox(height: 20),
+                          if (controller.denied.value) ...[
+                            VaultButton(
+                              label: 'Open Settings',
+                              expand: false,
+                              onPressed: AppPermissions.openSettings,
+                            ),
+                            const SizedBox(height: 12),
+                          ],
                           VaultButton(
                             label: 'Choose a photo instead',
                             expand: false,

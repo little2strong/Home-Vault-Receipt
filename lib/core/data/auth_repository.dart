@@ -110,19 +110,37 @@ class AuthRepository {
 
   /// Account deletion needs a fresh sign-in. Email accounts pass their
   /// [password].
-  Future<void> reauthenticate({String? password}) async {
+  ///
+  /// With [forDeletion], Apple accounts always sign in again so the app can
+  /// revoke its Apple tokens (App Store rule 5.1.1(v)).
+  Future<void> reauthenticate({
+    String? password,
+    bool forDeletion = false,
+  }) async {
     final u = user;
     if (u == null) throw const AuthFailure('You are signed out.');
+    final ids = u.providerData.map((p) => p.providerId).toSet();
+    final apple = ids.contains('apple.com');
     // A sign-in in the last few minutes already counts as recent.
     final last = u.metadata.lastSignInTime;
-    if (last != null &&
+    if (!(forDeletion && apple) &&
+        last != null &&
         DateTime.now().difference(last) < const Duration(minutes: 4)) {
       return;
     }
-    final ids = u.providerData.map((p) => p.providerId).toSet();
     await _guard(() async {
-      if (ids.contains('apple.com')) {
-        await u.reauthenticateWithProvider(AppleAuthProvider());
+      if (apple) {
+        final result = await u.reauthenticateWithProvider(AppleAuthProvider());
+        final code = result.additionalUserInfo?.authorizationCode;
+        if (forDeletion && code != null) {
+          try {
+            await _auth.revokeTokenWithAuthorizationCode(code);
+          } catch (e) {
+            // Deletion still goes ahead; the user can also remove the app
+            // under Settings > Apple ID > Sign in with Apple.
+            debugPrint('Apple token not revoked: ${e.runtimeType}');
+          }
+        }
       } else if (ids.contains('google.com')) {
         await _ensureGoogle();
         final account = await GoogleSignIn.instance.authenticate();

@@ -1,8 +1,8 @@
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:crypto/crypto.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/services.dart';
 import 'package:google_mlkit_document_scanner/google_mlkit_document_scanner.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
@@ -10,6 +10,7 @@ import 'package:pdfx/pdfx.dart';
 
 import '../models/receipt_draft.dart';
 import 'app_config.dart';
+import 'app_permissions.dart';
 import 'firebase_bootstrap.dart';
 import 'text_recognition_service.dart';
 
@@ -57,7 +58,11 @@ class CaptureService {
   }
 
   Future<List<DraftPage>> pickPhotos(String draftId) async {
-    final picked = await _picker.pickMultiImage(limit: Limits.receiptPages);
+    final picked =
+        await _askingFirst(
+          () => _picker.pickMultiImage(limit: Limits.receiptPages),
+        ) ??
+        const <XFile>[];
     return [
       for (final x in picked.take(Limits.receiptPages))
         await keepImage(draftId, File(x.path)),
@@ -141,10 +146,25 @@ class CaptureService {
   }
 
   /// One item photo from the camera or gallery.
-  Future<XFile?> pickItemPhoto({required bool camera}) => _picker.pickImage(
-    source: camera ? ImageSource.camera : ImageSource.gallery,
-    requestFullMetadata: true,
+  Future<XFile?> pickItemPhoto({required bool camera}) => _askingFirst(
+    () => _picker.pickImage(
+      source: camera ? ImageSource.camera : ImageSource.gallery,
+      requestFullMetadata: true,
+    ),
   );
+
+  /// The phone shows its permission prompt the first time; after a refusal
+  /// the picker fails, so explain and offer Settings instead.
+  Future<T?> _askingFirst<T>(Future<T?> Function() pick) async {
+    try {
+      return await pick();
+    } on PlatformException catch (e) {
+      final denied = AppPermissions.deniedBy(e.code);
+      if (denied == null) rethrow;
+      await AppPermissions.explainDenied(denied);
+      return null;
+    }
+  }
 
   Future<void> deleteDraftFiles(String draftId) async {
     final base = await getApplicationDocumentsDirectory();

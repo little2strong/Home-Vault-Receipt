@@ -110,5 +110,25 @@ void main() {
       expect(c.showPassword.value, isTrue);
       expect(find.byTooltip('Hide password'), findsOneWidget);
     });
+
+    testWidgets(
+      'offers Sign in with Apple beside Google on iOS (App Store 4.8)',
+      (t) async {
+        await pumpAuth(t, const SignInView());
+        expect(find.text('Continue with Apple'), findsOneWidget);
+        expect(find.text('Continue with Google'), findsOneWidget);
+      },
+      variant: TargetPlatformVariant.only(TargetPlatform.iOS),
+    );
+
+    testWidgets(
+      'shows only Google on Android',
+      (t) async {
+        await pumpAuth(t, const SignInView());
+        expect(find.text('Continue with Apple'), findsNothing);
+        expect(find.text('Continue with Google'), findsOneWidget);
+      },
+      variant: TargetPlatformVariant.only(TargetPlatform.android),
+    );
   });
 }
