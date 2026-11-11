@@ -2,8 +2,10 @@ import 'package:firebase_auth_mocks/firebase_auth_mocks.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get/get.dart';
+import 'package:home_vault_receipt/app/routes/app_routes.dart';
 import 'package:home_vault_receipt/core/data/auth_repository.dart';
 import 'package:home_vault_receipt/core/theme/app_theme.dart';
+import 'package:home_vault_receipt/features/start/binding/start_bindings.dart';
 import 'package:home_vault_receipt/features/start/controller/start_controllers.dart';
 import 'package:home_vault_receipt/features/start/view/start_views.dart';
 
@@ -109,6 +111,65 @@ void main() {
       await t.pump();
       expect(c.showPassword.value, isTrue);
       expect(find.byTooltip('Hide password'), findsOneWidget);
+    });
+
+    testWidgets('create account -> sign in keeps the text fields usable', (
+      t,
+    ) async {
+      // Regression: replacing the create-account route used to delete the
+      // shared controller and dispose the fields sign-in was still showing.
+      Get.testMode = true;
+      t.view.physicalSize = const Size(600, 1400) * 3;
+      t.view.devicePixelRatio = 3;
+      addTearDown(t.view.reset);
+      Get.put(AuthRepository(MockFirebaseAuth()));
+      await t.pumpWidget(
+        GetMaterialApp(
+          theme: AppTheme.light,
+          initialRoute: Routes.welcome,
+          getPages: [
+            GetPage(name: Routes.welcome, page: () => const WelcomeView()),
+            GetPage(
+              name: Routes.signIn,
+              page: () => const SignInView(),
+              binding: SignInBinding(),
+            ),
+            GetPage(
+              name: Routes.signUp,
+              page: () => const SignUpView(),
+              binding: SignInBinding(),
+            ),
+          ],
+        ),
+      );
+      await t.pumpAndSettle();
+
+      await t.tap(find.text('Create account'));
+      await t.pumpAndSettle();
+      await t.enterText(field('Email address'), 'sam@example.com');
+      await t.ensureVisible(find.text('Sign in'));
+      await t.tap(find.text('Sign in'));
+      await t.pumpAndSettle();
+
+      expect(find.text('Welcome back'), findsOneWidget);
+      await t.tap(field('Email address'));
+      await t.enterText(field('Password'), 'secret-1');
+      await t.pump();
+      expect(t.takeException(), isNull);
+      expect(Get.find<SignInController>().email.text, 'sam@example.com');
+    });
+
+    testWidgets('sign-out empties the form', (t) async {
+      final c = await pumpAuth(t, const SignInView());
+      c.email.text = 'sam@example.com';
+      c.password.text = 'secret-1';
+      c.error.value = 'That email and password do not match.';
+      c.busy.value = 'email';
+      c.reset();
+      expect(c.email.text, isEmpty);
+      expect(c.password.text, isEmpty);
+      expect(c.error.value, isNull);
+      expect(c.busy.value, isNull);
     });
 
     testWidgets(

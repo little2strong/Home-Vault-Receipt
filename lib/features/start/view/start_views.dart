@@ -113,11 +113,11 @@ class WelcomeView extends StatelessWidget {
       actions: [
         VaultButton(
           label: 'Create account',
-          onPressed: () => Get.toNamed(Routes.signUp),
+          onPressed: () => openAuthPage(Routes.signUp),
         ),
         VaultButton.secondary(
           label: 'I already have an account',
-          onPressed: () => Get.toNamed(Routes.signIn),
+          onPressed: () => openAuthPage(Routes.signIn),
         ),
       ],
       children: [

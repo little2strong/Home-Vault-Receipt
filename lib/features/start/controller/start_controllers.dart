@@ -65,7 +65,19 @@ Future<void> afterSignIn({String? displayName}) async {
 /// Signs out and goes back to the welcome screen.
 Future<void> signOutOfVault() async {
   await Get.find<AuthRepository>().signOut();
+  if (Get.isRegistered<SignInController>()) {
+    Get.find<SignInController>().reset();
+  }
   await Get.offAllNamed(Routes.welcome);
+}
+
+/// From the welcome screen to sign in or create account. The form controller
+/// outlives each visit, so drop messages left from the last one.
+void openAuthPage(String route) {
+  if (Get.isRegistered<SignInController>()) {
+    Get.find<SignInController>().clearMessages();
+  }
+  Get.toNamed(route);
 }
 
 Future<void> confirmSignOut(BuildContext context) async {
@@ -158,7 +170,7 @@ class SignInController extends GetxController {
   }
 
   bool _validate({required bool create}) {
-    _clearMessages();
+    clearMessages();
     final address = email.text.trim();
     final pass = password.text;
     if (create && _cleanName().isEmpty) nameError.value = 'Enter your name.';
@@ -190,7 +202,7 @@ class SignInController extends GetxController {
   /// Emails a reset link to the address in the email field.
   Future<void> sendReset() async {
     if (busy.value != null) return;
-    _clearMessages();
+    clearMessages();
     final address = email.text.trim();
     emailError.value = _emailProblem(address);
     if (emailError.value != null) return;
@@ -214,7 +226,7 @@ class SignInController extends GetxController {
 
   /// Back to the email field on the forgot password screen.
   void useDifferentEmail() {
-    _clearMessages();
+    clearMessages();
     resetSentTo.value = null;
   }
 
@@ -227,7 +239,7 @@ class SignInController extends GetxController {
     });
   }
 
-  void _clearMessages() {
+  void clearMessages() {
     error.value = null;
     nameError.value = null;
     emailError.value = null;
@@ -236,12 +248,12 @@ class SignInController extends GetxController {
   }
 
   void openSignUp() {
-    _clearMessages();
+    clearMessages();
     Get.toNamed(Routes.signUp);
   }
 
   void openSignIn() {
-    _clearMessages();
+    clearMessages();
     if (Get.previousRoute == Routes.signIn) {
       Get.back();
       return;
@@ -250,10 +262,23 @@ class SignInController extends GetxController {
   }
 
   Future<void> openForgotPassword() async {
-    _clearMessages();
+    clearMessages();
     resetSentTo.value = null;
     await Get.toNamed(Routes.forgotPassword);
-    _clearMessages();
+    clearMessages();
+  }
+
+  /// Empties the form so the next person to sign in starts clean.
+  void reset() {
+    _resendTimer?.cancel();
+    for (final c in [name, email, password, confirmPassword]) {
+      c.clear();
+    }
+    clearMessages();
+    busy.value = null;
+    showPassword.value = false;
+    resetSentTo.value = null;
+    resendIn.value = 0;
   }
 
   @override

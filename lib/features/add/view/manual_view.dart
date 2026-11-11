@@ -56,7 +56,9 @@ class ManualController extends GetxController {
   void removeLine(ManualLine l) {
     if (lines.length == 1) return;
     lines.remove(l);
-    l.dispose();
+    // The row's text fields are still mounted until the next frame rebuilds
+    // the list, so dispose their controllers only after that.
+    WidgetsBinding.instance.addPostFrameCallback((_) => l.dispose());
   }
 
   Future<void> attachPhoto() async {
